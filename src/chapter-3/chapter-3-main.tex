@@ -1,0 +1,79 @@
+\chapter{Building parser combinators as effectful programmes}
+\label{cpt-parsers}
+
+A parser is a necessary part of a broad range of software systems: from web browsers
+to compilers. Parsers may be automatically generated or hand-written. Like any
+software, parsers can carry implementation errors. One of the possible
+methods of development of robust and correct-by-design software is using a programming
+language with a rich type system. Modern programming languages offer facilities of
+lightweight program verification using strict static typing discipline.
+
+Parsing could be thought as a computation that operates over an input sequence of
+characters, carrying some state (i.e. current position in input) and have a
+possibility to fail. These features are computational effects. Chapter~\ref{cpt-effects}
+introduced the most popular approaches to the construction of effectful computations and
+this one show how these methods could be used to build parser combinators.
+
+One of the approaches to parser construction that benefits from eloquent type system
+is monadic parser combinators~\cite{monParsing}. Is has been widely accepted by the
+community and was used to implement industrial-grade \texttt{Haskell} libraries, such
+as \texttt{Parsec}~\cite{parsec} and \texttt{Attoparsec}~\cite{attoparsec}. This
+approach represents parser as a monad and produces parsers powerful enough to admit
+context-sensitive grammars. Section~\ref{cpt-parsers:monadic} gives an account to this kind of parsers.
+
+A parser could be represented not only by monadic computation but also by an
+applicative functor~\cite{Mcbride:2008:APE:1348940.1348941}. An applicative interface
+is less restrictive than monadic one, but even though, it is possible to capture
+context-free grammars. These parsers are described in
+section~\ref{cpt-parsers:applicative}.
+
+It is also feasible to represent an interface of a parser as an algebraic effect and
+the process of analysis as a handler for this effect. Unlike monads and applicative functors,
+algebraic effects do not still have wide support in popular programming languages.
+Section~\ref{cpt-parsers:alg-eff} shows how parsing could be expressed using this
+approach and provides examples in an experimental programming language~\texttt{Frank}
+that has built-in support for algebraic effects and handlers.
+
+  \section{Monadic parsers}
+  \label{cpt-parsers:monadic}
+
+    \subsection{Monads in Haskell}
+
+    \subsection{Parser as a Monad}
+
+      Consider a simple type to represent a parser.
+
+      \begin{lstlisting}
+type Parser a = String -> [(a,String)]
+      \end{lstlisting}
+
+      In this representation, parser is a
+      function, taking input stream and returning a list of possible valid
+      variants of analysis in conjunction with corresponding input stream
+      remains. Empty list of result stands for completely unsuccessful attempt of
+      parsing, whereas multiple results mean ambiguity.
+
+      Types similar to \texttt{Parser a} may be treated as effectful computation.
+      In this particular example, effect of non-determinism is exploited to express
+      ambiguity of parsing. To represent computations with effects a concept of
+      \texttt{Monad} is used in~\texttt{Haskell} programming language.
+      Comprehensive information about properties of parsers like one presented
+      above may be found in paper~\cite{monParsing}.
+
+      To extend capabilities and improve convenience of syntactic analysers, set of
+      effects of parser could be expanded: it is handy to run parsers in a configurable
+      environment or introduce logging. In this section two approaches to combination
+      of computational effects will be considered: monad transformers and extensible
+      effects.
+
+    \subsection{Factorising parser into monad transformers stack}
+
+  \section{Applicative parsing}
+  \label{cpt-parsers:applicative}
+
+  \section{Parsers as algebraic effects}
+  \label{cpt-parsers:alg-eff}
+
+    \subsection{As a combination of effects}
+
+    \subsection{As a standalone effect}

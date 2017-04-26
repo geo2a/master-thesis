@@ -1,0 +1,34 @@
+% В этом файле следует писать текст работы, разбивая его на
+% разделы (section), подразделы (subsection) и, если нужно,
+% главы (chapter).
+
+% Предварительно следует указать необходимую информацию
+% в файле SETUP.tex
+
+\input{preamble.tex}
+
+\begin{document}
+
+\input{src/intro.tex}
+
+\input{src/chapter-1-fp.tex}
+
+\input{src/chapter-2-computational-effects.tex}
+
+\input{src/chapter-3/chapter-3-main.tex}
+
+\input{src/conclusion.tex}
+
+% Печать списка литературы (библиографии)
+\printbibliography[%{}
+    heading=bibintoc%
+    %,title=Библиография % если хочется это слово
+]
+% Файл со списком литературы: biblio.bib
+% Подробно по оформлению библиографии:
+% см. документацию к пакету biblatex-gost
+% http://ctan.mirrorcatalogs.com/macros/latex/exptl/biblatex-contrib/biblatex-gost/doc/biblatex-gost.pdf
+% и огромное количество примеров там же:
+% http://mirror.macomnet.net/pub/CTAN/macros/latex/contrib/biblatex-contrib/biblatex-gost/doc/biblatex-gost-examples.pdf
+
+\end{document}
