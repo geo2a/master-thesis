@@ -105,11 +105,9 @@ type Parser a = String -> Maybe (a,String)
       Types similar to \texttt{Parser a} may be treated as effectful computation.
       To represent computations with effects a concept of
       \texttt{Monad} is used in~\texttt{Haskell} programming language. This particular
-      type could be made an instance of \texttt{Monad} type class to conve
+      type could be made an instance of \texttt{Monad} type class.
       Comprehensive information about properties of parsers like one presented
       above may be found in paper~\cite{monParsing}.
-
-
 
       To extend capabilities and improve convenience of syntactic analysers, set of
       effects of parser could be expanded: it is handy to run parsers in a configurable
@@ -125,6 +123,75 @@ type Parser a = String -> Maybe (a,String)
   \section{Parsers as algebraic effects}
   \label{cpt-parsers:alg-eff}
 
-    \subsection{As a combination of effects}
+  Algebraic effects and effects handlers provide an alternative to monads and monad
+  transformers way to express effectful computations. Building parser combinators in
+  term of algebraic effects and the process of parsing as their handlers is a solid
+  model problem to find out strengths and weaknesses of this approach.
 
-    \subsection{As a standalone effect}
+  This section describes leads to prototype implementations of parser
+  combinators libraries in experimental programming language
+  Frank~\cite{DBLP:conf/popl/LindleyMM17} which has first-class support for
+  algebraic effects and effects handlers. Parsers may be represented either by
+  combination of multiple effects, for instance, mutable state and possible failure,
+  or may be expressed as a monolith effect signature. In conclusion, a
+  note on expressive power of Franks implementation of algebraic effects and
+  handlers is made.
+
+  \subsection{As a combination of effects}
+
+    Section~\ref{cpt-effects:alg-effects} gives an account on algebraic effects and
+    effects handlers and, in particular, on programming with these concepts in Frank
+    programming language. This section employs Frank to build a prototype of parser
+    combinators library.
+
+    As is has been already said, simple parser could be expressed as a computation
+    with two effects: state of input stream and a possibility of failure. Thus,
+    handling parsing means handling a combination of those two effects, that is done
+    by composing handlers for failure and state (see
+    listing~\ref{listing:parserHandlerCombo}).
+
+    \begin{figure}[t]
+    \begin{lstlisting}
+parse : {[Error, State (List Char)] X} -> (List Char) -> Maybe X
+parse p str = catch (state str p!)
+    \end{lstlisting}
+    \caption{Handling combination of state and failure}
+    \label{listing:parserHandlerCombo}
+    \end{figure}
+
+    First parser that serves as a most basic building block in construction of
+    more advanced ones is the~\emph{unconditional consumer}.
+    It must take the first item
+    of the input stream and yield it as a result, updating the state of the input
+    stream with it's remains. In case of exhausted input, parser must fail. That
+    is exactly the behaviour described by~\lstinline{item} function of listing
+    ~\ref{listing:parserItemCombo}.
+
+    \begin{figure}[t]
+    \begin{lstlisting}
+item : [Error, State (List Char)] Char
+item! = on get! { nil -> fail
+                | (x :: xs) -> put xs; x}
+    \end{lstlisting}
+    \caption{Parser consuming single item}
+    \label{listing:parserItemCombo}
+    \end{figure}
+
+    Of course, unconditional consumption of the input stream without any actions
+    doesn't make much sense. Actually, we would prefer consuming some items to others. Thus,~\emph{conditional consumer} that checks if an item satisfies a
+    given predicate prior to consuming and fails otherwise, must be
+    implemented (~\ref{listing:parserSatCombo}).
+
+    \begin{figure}[t]
+    \begin{lstlisting}
+sat : {Char -> [Error, State (List Char)] Bool} ->
+      [Error, State (List Char)] Char
+sat p = on item! {c -> if (p c) {c} {fail}}
+    \end{lstlisting}
+    \caption{Conditional consumer}
+    \label{listing:parserSatCombo}
+    \end{figure}
+
+  \subsection{As a standalone effect}
+
+
