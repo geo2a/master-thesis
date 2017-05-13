@@ -46,7 +46,7 @@ that has built-in support for algebraic effects and handlers.
       to distinguish pure computations from ones having some kind of side effect:
       mutable state, exceptions, non-determinism, etc.
 
-      \begin{figure}[t]
+      \begin{figure}[h]
       \begin{lstlisting}
 class Monad m where
   (>>=)  :: m a -> (a -> m b)   -> m b
@@ -58,7 +58,7 @@ class Monad m where
       \label{listing:monadClass}
       \end{figure}
 
-      \begin{figure}[t]
+      \begin{figure}[h]
       \begin{lstlisting}
 return a >>= k                  =  k a
 m        >>= return             =  m
@@ -88,7 +88,7 @@ m        >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
 
       Consider a simple type to represent a parser.
 
-      \begin{figure}[t]
+      \begin{figure}[h]
       \begin{lstlisting}
 type Parser a = String -> Maybe (a,String)
       \end{lstlisting}
@@ -144,13 +144,15 @@ type Parser a = String -> Maybe (a,String)
     programming language. This section employs Frank to build a prototype of parser
     combinators library.
 
+    \subsubsection{Defining parser combinators}
+
     As is has been already said, simple parser could be expressed as a computation
     with two effects: state of input stream and a possibility of failure. Thus,
     handling parsing means handling a combination of those two effects, that is done
     by composing handlers for failure and state (see
     listing~\ref{listing:parserHandlerCombo}).
 
-    \begin{figure}[t]
+    \begin{figure}[h]
     \begin{lstlisting}
 parse : {[Error, State (List Char)] X} -> (List Char) -> Maybe X
 parse p str = catch (state str p!)
@@ -167,7 +169,7 @@ parse p str = catch (state str p!)
     is exactly the behaviour described by~\lstinline{item} function of listing
     ~\ref{listing:parserItemCombo}.
 
-    \begin{figure}[t]
+    \begin{figure}[h]
     \begin{lstlisting}
 item : [Error, State (List Char)] Char
 item! = on get! { nil -> fail
@@ -182,7 +184,7 @@ item! = on get! { nil -> fail
     given predicate prior to consuming and fails otherwise, must be
     implemented (~\ref{listing:parserSatCombo}).
 
-    \begin{figure}[t]
+    \begin{figure}[h]
     \begin{lstlisting}
 sat : {Char -> [Error, State (List Char)] Bool} ->
       [Error, State (List Char)] Char
@@ -191,6 +193,196 @@ sat p = on item! {c -> if (p c) {c} {fail}}
     \caption{Conditional consumer}
     \label{listing:parserSatCombo}
     \end{figure}
+
+    Having these basic building blocks, we are already able to construct
+    practical parsers. A useful application of~\texttt{sat} is
+    the~\texttt{char} parser that accepts a given character from the input
+    stream (listing~\ref{parserCharCombo}).
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+char : Char -> [Error, State (List Char)] Char
+char c = sat {x -> eqChar x c}
+    \end{lstlisting}
+    \caption{Parser for a given character}
+    \label{listing:parserCharCombo}
+    \end{figure}
+
+    Besides accepting specific characters,~\texttt{sat} parser could be used
+    to implement other basic parsers. For instance, if predicate
+    ~\texttt{isLetter} determining weather of not given character is Latin letter is defined, we could supply it to~\texttt{sat} and acquire a parser for letters (listing~\ref{listing:parserLetterCombo}). The same could be done for decimal
+    (or other) digits.
+
+    \begin{figure}[h]`
+    \begin{lstlisting}
+letter : [Error, State (List Char)]Char
+letter! = sat isLetter
+
+digit : [Error, State (List Char)]Char
+digit! = sat isDigit
+    \end{lstlisting}
+    \caption{Parsers letters and digits}
+    \label{listing:parserLetterCombo}
+    \end{figure}
+
+    Now, being able to parse singular characters, we can make ourselves a task
+    to accept sequences. That could be useful, for example, to parse terminals of
+    some grammar. Here the main power of Frank's effect support comes in handy.
+    As far as a string is essentially a list of characters, we can use the
+    standard~\texttt{map} function in presence of~\texttt{Error}
+    and~\texttt{State (List Char)}~\emph{abilities}.
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+string : (List Char) ->
+         [Error, State (List Char)] (List Char)
+string str = map char str
+    \end{lstlisting}
+    \caption{Parser for a given string}
+    \label{listing:parserStrCombo}
+    \end{figure}
+
+    But individual chars and known-in-advance strings are not that interesting. Therefore, turn comes to actually building actual combinators: alternative
+    and repetition.
+
+    Consider the case we have to parsers $p_1$ and $p_2$, and we would like to
+    construct a parser that accepts all inputs that are recognisable by both
+    $p_1$ and $p_2$. In our setting we could implement this by deterministic
+    choice: we apply $p_1$ and yield the result if it succeeds, otherwise we
+    apply $p_2$ and initialise an error if it has failed, returning its
+    result in case of success.
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+choose : {[Error, State (List Char)] X} ->
+         {[Error, State (List Char)] X} ->
+          [Error, State (List Char)] X
+choose p1 p2 =
+  on (parse p1 get!) { (right _)  -> p1!
+                     | (left  _)  ->  on (parse p2 get!)
+                       { (right _)   -> p2!
+                       | (left err)  -> throw err
+                       }
+                     }
+    \end{lstlisting}
+    \caption{Alternative combinator}
+    \label{listing:parserChooseCombo}
+    \end{figure}
+
+    For the simplest instance for~\texttt{choose} usage, reconsider
+    ~\texttt{letter} and~\texttt{digit} parsers. We could combine those with the
+    alternative combinator to accept alphanumeric characters
+    (listing~\ref{listing:parserAlphanumCombo}).
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+alphanum : [Error, State (List Char)]Char
+alphanum! = choose digit letter
+    \end{lstlisting}
+    \caption{Parser for alphanumerics}
+    \label{listing:parserAlphanumCombo}
+    \end{figure}
+
+    The motivation for repetition combinators is the need to apply an already defined
+    parser multiple times with no certainty about the amount of required applications.
+    Repetition combinators are useful for problems like parsing a sequence
+    of statements of a programming language. In parser combinators approach,
+    repetition combinators are usually defined as two mutually recursive functions:
+    ~\texttt{many} accepts the result of zero or more applications of its
+    argument-parser $p$ and~\texttt{some} succeeds if $p$ is applicable at least
+    once.
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+many : {[Error, State (List Char)]X} ->
+        [Error, State (List Char)](List X)
+many p = choose {some p} {nil}
+
+some : {[Error, State (List Char)] X} ->
+        [Error, State (List Char)](List X)
+some p = p! :: many p
+    \end{lstlisting}
+    \caption{Repetition combinators}
+    \label{listing:parserManyCombo}
+    \end{figure}
+
+    As an example of repetition combinator usage, consider parser for words ---
+    a sequence of letters (listing~\ref{listing:parserWordCombo}).
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+word : [Error, State (List Char)] (List Char)
+word! = some letter
+    \end{lstlisting}
+    \caption{Parser for words}
+    \label{listing:parserWordCombo}
+    \end{figure}
+
+    \subsubsection{Using parsers}
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+data Expr = Plus Expr Expr
+          | Val Int
+      \end{lstlisting}
+      \caption{Addition expressions AST}
+      \label{listing:parserExprCombo}
+      \end{figure}
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+expr : [Exception ParseError, State (List Char)] Expr
+expr! = on number! { x -> on (char ' ') { _ -> on number! {y -> Plus x y}}}
+      \end{lstlisting}
+      \caption{Pseudo-monadic style of defining parsers}
+      \label{listing:parserExprMonCombo}
+      \end{figure}
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+expr : [Exception ParseError, State (List Char)] Expr
+expr! = Plus number! (char ' '; number!)
+      \end{lstlisting}
+      \caption{Direct applicative style of defining parsers}
+      \label{listing:parserExprAppCombo}
+      \end{figure}
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+main : {Either ParseError Expr}
+main! = parse expr "23 32"
+      \end{lstlisting}
+      \caption{Using expressing parser}
+      \label{listing:parserExprMainCombo}
+      \end{figure}
+
+    \subsubsection{Discussion}
+
+    Frank provides convenient and expressive features for programming with
+    algebraic effects and handlers. Frank's native support for computations with
+    multiple effects doesn't require programmes to deal with much of boilerplate.
+    When the collection of effects of computation is determined, there is nothing
+    more holding the programmer from working: no need to wrap one's head around
+    complex types like monad transformers stacks and static effects ordering.
+    In addition, direct applicative style of defining effectful computations often
+    leaves in unnecessary to give names to interim results, thus making code
+    easier to follow.
+
+    Because Frank is in its infancy, it lacks some useful language features that
+    are habitual from more mature functional languages. For example, there is no
+    way to declare any short-cut for part of type signature, hence the
+    effect peg must be included in type signature of every parser combinator, making
+    source code a bit more verbose than in could be.
+
+    Representing parser as a computation combining several side effects is a
+    triumph of modularity. Nevertheless, it somehow abuses one of the most important
+    points about algebraic effects and effect handlers: the independence of
+    syntax and semantics. Of course, parsing is perfectly representable by the
+    combination of several algebraic effects, but it might also be interesting
+    and useful to represent it as a separate effect signature to be able to assign
+    different interpretations to the same parser's syntax. Potential usefulness
+    of this is discussed in the next subsection.
+
 
   \subsection{As a standalone effect}
 
