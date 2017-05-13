@@ -320,41 +320,41 @@ word! = some letter
 
     \subsubsection{Using parsers}
 
-      \begin{figure}[h]
-      \begin{lstlisting}
-data Expr = Plus Expr Expr
-          | Val Int
-      \end{lstlisting}
-      \caption{Addition expressions AST}
-      \label{listing:parserExprCombo}
-      \end{figure}
+%       \begin{figure}[h]
+%       \begin{lstlisting}
+% data Expr = Plus Expr Expr
+%           | Val Int
+%       \end{lstlisting}
+%       \caption{Addition expressions AST}
+%       \label{listing:parserExprCombo}
+%       \end{figure}
 
-      \begin{figure}[h]
-      \begin{lstlisting}
-expr : [Exception ParseError, State (List Char)] Expr
-expr! = on number! { x -> on (char ' ') { _ -> on number! {y -> Plus x y}}}
-      \end{lstlisting}
-      \caption{Pseudo-monadic style of defining parsers}
-      \label{listing:parserExprMonCombo}
-      \end{figure}
+%       \begin{figure}[h]
+%       \begin{lstlisting}
+% expr : [Exception ParseError, State (List Char)] Expr
+% expr! = on number! { x -> on (char ' ') { _ -> on number! {y -> Plus x y}}}
+%       \end{lstlisting}
+%       \caption{Pseudo-monadic style of defining parsers}
+%       \label{listing:parserExprMonCombo}
+%       \end{figure}
 
-      \begin{figure}[h]
-      \begin{lstlisting}
-expr : [Exception ParseError, State (List Char)] Expr
-expr! = Plus number! (char ' '; number!)
-      \end{lstlisting}
-      \caption{Direct applicative style of defining parsers}
-      \label{listing:parserExprAppCombo}
-      \end{figure}
+%       \begin{figure}[h]
+%       \begin{lstlisting}
+% expr : [Exception ParseError, State (List Char)] Expr
+% expr! = Plus number! (char ' '; number!)
+%       \end{lstlisting}
+%       \caption{Direct applicative style of defining parsers}
+%       \label{listing:parserExprAppCombo}
+%       \end{figure}
 
-      \begin{figure}[h]
-      \begin{lstlisting}
-main : {Either ParseError Expr}
-main! = parse expr "23 32"
-      \end{lstlisting}
-      \caption{Using expressing parser}
-      \label{listing:parserExprMainCombo}
-      \end{figure}
+%       \begin{figure}[h]
+%       \begin{lstlisting}
+% main : {Either ParseError Expr}
+% main! = parse expr "23 32"
+%       \end{lstlisting}
+%       \caption{Using expressing parser}
+%       \label{listing:parserExprMainCombo}
+%       \end{figure}
 
     \subsubsection{Discussion}
 
