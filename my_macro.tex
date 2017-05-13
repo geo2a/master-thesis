@@ -1,14 +1,14 @@
 
 
 % макросы для начала введения и заключения
-\newcommand{\Intro}{\addsec{Введение}}
+\newcommand{\Intro}{\addsec{Introduction}}
 \ifthenelse{\value{worktype} > 1}{%
-    \renewcommand{\Intro}{\addchap{Введение}}%
+    \renewcommand{\Intro}{\addchap{Introduction}}%
 }
 
-\newcommand{\Conc}{\addsec{Заключение}}
+\newcommand{\Conc}{\addsec{Conclusion}}
 \ifthenelse{\value{worktype} > 1}{%
-    \renewcommand{\Conc}{\addchap{Заключение}}%
+    \renewcommand{\Conc}{\addchap{Conclusion}}%
 }
 
 % Правильные значки для нестрогих неравенств и пустого множества
@@ -26,8 +26,8 @@ C\nolinebreak\hspace{-.05em}%
 \raisebox{.2ex}{+}%
 }
 
-% Неразрывный дефис, который допускает перенос внутри слов,
-% типа жёлто-синий: нужно писать жёлто"/синий.
-\makeatletter
-    \defineshorthand[russian]{"/}{\mbox{-}\bbl@allowhyphens}
-\makeatother
+% % Неразрывный дефис, который допускает перенос внутри слов,
+% % типа жёлто-синий: нужно писать жёлто"/синий.
+% \makeatletter
+%     \defineshorthand[russian]{"/}{\mbox{-}\bbl@allowhyphens}
+% \makeatother

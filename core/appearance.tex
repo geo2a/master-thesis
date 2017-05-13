@@ -69,7 +69,7 @@
 \addtokomafont{sectioning}{\hspace{\MyIndent}}
 
 \renewcommand*{\captionformat}{~---~}
-\renewcommand*{\figureformat}{Рисунок~\thefigure}
+\renewcommand*{\figureformat}{Listing~\thefigure}
 
 % Плавающие листинги
 \usepackage{float}
@@ -96,8 +96,8 @@
 % слово Глава
 \usepackage{calc}
 \ifthenelse{\value{worktype} > 1}{%
-\renewcommand{\cftchappresnum}{Глава }
-\addtolength{\cftchapnumwidth}{\widthof{Глава }}
+\renewcommand{\cftchappresnum}{Chapter }
+\addtolength{\cftchapnumwidth}{\widthof{Chapter }}
 }
 
 % Очищаем оформление названий старших элементов в оглавлении
