@@ -318,51 +318,184 @@ word! = some letter
     \label{listing:parserWordCombo}
     \end{figure}
 
-    \subsubsection{Using parsers}
+    Besides plain sequences, it is very common to have sequences separated by some
+    kind of marker, for instance in CSV files. Therefore, a repetition with separation
+    combinator could be useful. It could be implemented on top of~\texttt{many}
+    combinator, see listing~\ref{listing:parserSepbyCombo}. Again,~\texttt{sepby}
+    accepts any, including empty, sequence, while~\texttt{sepby1} requires at least
+    one complete period.
 
-%       \begin{figure}[h]
-%       \begin{lstlisting}
-% data Expr = Plus Expr Expr
-%           | Val Int
-%       \end{lstlisting}
-%       \caption{Addition expressions AST}
-%       \label{listing:parserExprCombo}
-%       \end{figure}
+    \begin{figure}[h]
+    \begin{lstlisting}
+sepby : {[Exception ParseError, State String]X} ->
+        {[Exception ParseError, State String]Y} ->
+        [Exception ParseError, State String](List X)
+sepby p sep = choose {sepby1 p sep} {[]}
 
-%       \begin{figure}[h]
-%       \begin{lstlisting}
-% expr : [Exception ParseError, State (List Char)] Expr
-% expr! = on number! { x -> on (char ' ') { _ -> on number! {y -> Plus x y}}}
-%       \end{lstlisting}
-%       \caption{Pseudo-monadic style of defining parsers}
-%       \label{listing:parserExprMonCombo}
-%       \end{figure}
+sepby1 : {[Exception ParseError, State String]X} ->
+         {[Exception ParseError, State String]Y} ->
+         [Exception ParseError, State String](List X)
+sepby1 p sep = p! :: (many {sep!; p!})
+    \end{lstlisting}
+    \caption{Repetition with separation combinators}
+    \label{listing:parserSepbyCombo}
+    \end{figure}
 
-%       \begin{figure}[h]
-%       \begin{lstlisting}
-% expr : [Exception ParseError, State (List Char)] Expr
-% expr! = Plus number! (char ' '; number!)
-%       \end{lstlisting}
-%       \caption{Direct applicative style of defining parsers}
-%       \label{listing:parserExprAppCombo}
-%       \end{figure}
+    The discussed combinators
 
-%       \begin{figure}[h]
-%       \begin{lstlisting}
-% main : {Either ParseError Expr}
-% main! = parse expr "23 32"
-%       \end{lstlisting}
-%       \caption{Using expressing parser}
-%       \label{listing:parserExprMainCombo}
-%       \end{figure}
+    \subsubsection{Case-study: parsing simplified Markdown}
+
+    As a usage example for the developed library, consider the
+    parser of simplified Markdown-like language. We take into account only basic
+    constructions to keep the example concise: the language is limited to headers,
+    plain paragraphs of text and unordered lists. The abstract syntax tree of
+    the language is captured in Frank by the algebraic data type
+    (listing~\ref{listing:parserMdAstCombo}).
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+data Document = Document (List Block)
+
+data Block = Blank
+           | Header (Pair Int Line)
+           | Paragraph (List Line)
+           | UnorderedList (List Line)
+
+data Line = Empty | NonEmpty (List String)
+      \end{lstlisting}
+      \caption{Simplified Markdown AST}
+      \label{listing:parserMdAstCombo}
+      \end{figure}
+
+      Again, to keep this example simple and concise, we do not consider any in-line
+      formatting like bold or italic cases. Therefore in-line elements are represented
+      as plain strings of characters. The line of text is either an empty line or
+      non-empty one, and we use~\texttt{choose} combinator to represent this
+      alternative (listing~\ref{listing:parserLineCombo}). An empty line is a sequence of
+      spaces terminated with a newline character --- exactly this is captured by
+      ~\texttt{emptyLine} parser: we use~\texttt{many} combinator supplying parser
+      for a whitespace, then the parser for a newline character and, finally, the
+      data constructor~\texttt{Empty} of~\texttt{Line} data type. To build a parser for
+      a non-empty line, we need to refine the previous parser to be able to accept the
+      meaningful contents. We use repetition with separation combinator~\texttt{sepby}
+      to parse a sequence of words separated by spaces and then return an accepted sequence
+      wrapped up in the~\texttt{NonEmpty} data constructor. The interesting
+      thing here is the~\texttt{let}-binding. We need to accept and than throw away
+      the newline character that terminates the line, but at the same time we need to save
+      the meaningful contents. Hence we parse it and bind to a name for later use in
+      data constructor that gets returned. In Frank we work with
+      effectful functions in the same way like we do with the pure ones; therefore
+      syntactic sugar similar to~\texttt{do}-notation becomes redundant.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+line : [Exception ParseError, State String] Line
+line! = choose emptyLine nonEmptyLine
+
+emptyLine : [Exception ParseError, State String] Line
+emptyLine! = many {char ' '};
+             char '\n';
+             Empty
+
+nonEmptyLine : [Exception ParseError, State String] Line
+nonEmptyLine! = many {char ' '};
+                let ws = sepby word {char ' '}
+                in char '\n'; NonEmpty ws
+      \end{lstlisting}
+      \caption{Parsers for lines}
+      \label{listing:parserLineCombo}
+      \end{figure}
+
+      The abstract syntax described in listing~\ref{listing:parserMdAstCombo}
+      has a data type to represent a block of a Markdown document. To be able to
+      implement a parser for blocks we must implement a parser for every possible
+      block type: header, paragraph or unordered list.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+block : [Exception ParseError, State String] Block
+block! = choose header {choose paragraph unorderedList}
+      \end{lstlisting}
+      \caption{Parser for a block of Markdown document}
+      \label{listing:parserExprAppCombo}
+      \end{figure}
+
+      A Markdown header is a sequence of hash (\#) symbols followed by a
+      non-empty line of text. The number of hashes represents the level of
+      importance of the header, that is, one hash stands for HTML
+      tag~\texttt{<h1>}, two hashes for ~\texttt{<h2>}, etc. Therefore, the parser
+      needs to count the hashes and supply the number as an argument to the~\texttt{Header}
+      data constructor. Exactly that is done by~\texttt{header} parser and, thanks to Franks
+      applicative syntax for effects, we could supply the calls to inner parsers directly
+      as the arguments to the resulting data constructor.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+header : [Exception ParseError, State String] Block
+header! = Header (length (some {char '#'})) line!
+      \end{lstlisting}
+      \caption{Direct applicative style of defining parsers}
+      \label{listing:parserExprAppCombo}
+      \end{figure}
+
+      Parsers for paragraphs and unordered lists are similar. We use repetition
+      combinator~\texttt{some} to accept a non-empty sequence of lines for a paragraph and
+      a non-empty sequence of lines prefixed with a star for unordered list.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+paragraph : [Exception ParseError, State String] Block
+paragraph! = Paragraph (some nonEmptyLine)
+
+unorderedList : [Exception ParseError, State String] Block
+unorderedList! = UnorderedList (some (char '*'; line))
+      \end{lstlisting}
+      \caption{Direct applicative style of defining parsers}
+      \label{listing:parserExprAppCombo}
+      \end{figure}
+
+      Finally, we are ready to implement a parser for the complete document as a
+      non-empty sequence of blocks.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+document : [Exception ParseError, State String] Document
+document! = Document (some block)
+      \end{lstlisting}
+      \caption{Parser for the document}
+      \label{listing:parserMdDocCombo}
+      \end{figure}
+
+      To parse the document, we use the~\texttt{parse} function that was defined earlier
+      in this section, supplying the parser and the input string. If everything is
+      correct, the resulting AST will be produced.
+
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+> parse document "# ToDo list\nThings to do today\n* Drink coffee\n* Write thesis\n"
+
+right (Document ([Header 1 (NonEmpty (["ToDo", "list"])),
+                  Paragraph ([NonEmpty (["Things", "to", "do", "today"])]),
+                  UnorderedList ([NonEmpty (["Drink", "coffee"]),
+                                 NonEmpty (["Write", "thesis"])])]))
+      \end{lstlisting}
+      \caption{Using the parser}
+      \label{listing:parserExprMainCombo}
+      \end{figure}
+
+      The implemented parser is a simple example of usage of parser combinators library
+      implemented on top of algebraic effects and handlers abstraction. It gives a
+      good example of usage of the facilities that Frank provides to build
+      effectful computations.
 
     \subsubsection{Discussion}
 
     Frank provides convenient and expressive features for programming with
     algebraic effects and handlers. Frank's native support for computations with
     multiple effects doesn't require programmes to deal with much of boilerplate.
-    When the collection of effects of computation is determined, there is nothing
-    more holding the programmer from working: no need to wrap one's head around
+    When the collection of effects of the computation is determined, there is nothing
+    more holding the programmer from doing his job: no need to wrap one's head around
     complex types like monad transformers stacks and static effects ordering.
     In addition, direct applicative style of defining effectful computations often
     leaves in unnecessary to give names to interim results, thus making code
@@ -370,7 +503,7 @@ word! = some letter
 
     Because Frank is in its infancy, it lacks some useful language features that
     are habitual from more mature functional languages. For example, there is no
-    way to declare any short-cut for part of type signature, hence the
+    way to declare any short-cut for part of type signature; hence the
     effect peg must be included in type signature of every parser combinator, making
     source code a bit more verbose than in could be.
 
@@ -380,7 +513,7 @@ word! = some letter
     syntax and semantics. Of course, parsing is perfectly representable by the
     combination of several algebraic effects, but it might also be interesting
     and useful to represent it as a separate effect signature to be able to assign
-    different interpretations to the same parser's syntax. Potential usefulness
+    different interpretations to the same parser's syntax. The potential usefulness
     of this is discussed in the next subsection.
 
 
