@@ -489,7 +489,39 @@ right (Document ([Header 1 (NonEmpty (["ToDo", "list"])),
       good example of usage of the facilities that Frank provides to build
       effectful computations.
 
-    \subsubsection{Discussion}
+  \subsection{As a standalone effect}
+
+    The minimal parser combinators interface could be described with a monolithic
+    algebraic effect. It could bring parsers a usual a benefit of algebraic effects
+    and effects handlers approach: independence of effect's commands and their interpretation.
+    This was proved to be useful by Lindley~\cite{Lindley:2014:AEE:2633628.2633636}
+    for parsers: a single set of parsing commands could be given different interpretations
+    with idioms, arrows and monads, yielding parsers of different expressiveness.
+
+    As far as Frank has built-in support for algebraic effects and effects handlers,
+    implementation of a monolithic effect for parsing could be a natural way to
+    represent parsers in Frank.
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+interface Parser =
+    fail : forall Y . Y
+  | sat : {Char -> Bool} -> Char
+  | choose : forall Y . {[Parser] Y} -> {[Parser] Y} -> Y
+  | many : forall Y . {[Parser] Y} -> List Y
+    \end{lstlisting}
+    \caption{Monolithic parsing effect}
+    \label{listing:parserEffMono}
+    \end{figure}
+
+    However, we came into a restriction of Frank's
+    effects system, which makes it impossible to express the parser's signature
+    as desired due to impossibility to construct effect interfaces incorporation
+    generalised algebraic data types. That is, every command of the interface must
+    return a value of the same (maybe polymorphic) type, making an interface from
+    listing~\ref{listing:parserEffMono} impossible to express.
+
+   \subsection{Discussion}
 
     Frank provides convenient and expressive features for programming with
     algebraic effects and handlers. Frank's native support for computations with
@@ -501,22 +533,27 @@ right (Document ([Header 1 (NonEmpty (["ToDo", "list"])),
     leaves in unnecessary to give names to interim results, thus making code
     easier to follow.
 
-    Because Frank is in its infancy, it lacks some useful language features that
-    are habitual from more mature functional languages. For example, there is no
-    way to declare any short-cut for part of type signature; hence the
-    effect peg must be included in type signature of every parser combinator, making
-    source code a bit more verbose than in could be.
-
     Representing parser as a computation combining several side effects is a
     triumph of modularity. Nevertheless, it somehow abuses one of the most important
     points about algebraic effects and effect handlers: the independence of
     syntax and semantics. Of course, parsing is perfectly representable by the
     combination of several algebraic effects, but it might also be interesting
     and useful to represent it as a separate effect signature to be able to assign
-    different interpretations to the same parser's syntax. The potential usefulness
-    of this is discussed in the next subsection.
+    different interpretations to the same parser's syntax.
 
+    Unfortunately, the current state of Frank's effect system doesn't provide a way
+    to express effect interfaces required for building full-featured parser combinators
+    as a monolithic effect. The system could be refined by introducing a possibility
+    to incorporate GADTs into effect signatures.
 
-  \subsection{As a standalone effect}
+    Because Frank is in its infancy, it lacks some useful language features that
+    are habitual from more mature functional languages. For example, there is no
+    way to declare type synonyms; hence the
+    effect list must be included in type signature of every parser combinator, making
+    source code a bit more verbose than in could be.
+
+    Nevertheless, Frank is powerful is a very interesting research project, a
+    proof-of-concept language that allows prototyping type-safe DSLs with precise
+    control of side-effects.
 
 
