@@ -1,60 +1,6 @@
 \chapter{Computational effects}
 ~\label{cpt-effects}
 
-  % Some fairly general words on why computational effects are useful: pure and impure programs, resource-sensitivity... Separate effects, combining several effects into one, modularity issues.
-
-  Recent advances in theory of programming languages led to development and spreading
-  of functional programming languages with advanced type systems. This provide
-  software engineers a possibility to encode system specification in type-level, enforcing statically checked guaranties of correctness. A large cluster of errors is
-  introduced into programs by uncontrolled side effects such as file system IO,
-  network communication and mutable state. When many mainstream programming languages such as C++, Java and C\# follow static type discipline, they do not track
-  side-effects, thus making it harder to reason about program correctness. In contrast,
-  pure languages like Haskell and Idris forbid programs to execute effectful code
-  without special type annotations.
-
-  \begin{figure}[h]
-  \begin {lstlisting}
-  int plus(int x, int y) {
-    print("I'm mutating the World without you noticing!");
-    return x + y;
-  }
-  \end{lstlisting}
-  \caption{Uncontrollable side-effect in impure language}
-  \label{listing:effectfulPlus}
-  \end{figure}
-
-  \begin{figure}[h]
-  \begin{lstlisting}
-plus :: Int -> Int -> Int
-plut x y = x + y
-  \end{lstlisting}
-  \caption{Pure Haskell function}
-  \label{listing:purePlusHaskell}
-  \end{figure}
-
-  \begin{figure}[h]
-  \begin{lstlisting}
-plusIO :: Int -> Int -> IO Int
-plutIO x y = do
-  print "I'm mutating the World, but you know it"
-  return (x + y)
-  \end{lstlisting}
-  \caption{Pure Haskell function}
-  \label{listing:purePlusHaskell}
-  \end{figure}
-
-  After initial incorporation of side-effect control techniques in Haskell in
-  form of Monads~\cite{Wadler:1992:EFP:143165.143169}, effects systems got a lot
-  of development. Monadic approach has been enriched with the concept of monad
-  transformers~\cite{Liang:1995:MTM:199448.199528} to provide a modular way of
-  expressing computations with multiple side-effects. Even though monad
-  transformers has been widely accepted as a modular approach to side effects control,
-  they have some major drawbacks, that are addressed, for instance, by Kiselyov at al.~\cite{Kiselyov:2013:EEA:2578854.2503791}, and alternative approach --- Algebraic effects and effects handlers --- was proposed~\cite{DBLP:journals/jlp/BauerP15}
-  ~\cite{Kiselyov:2013:EEA:2578854.2503791}. Some studies were carried out to
-  compare expressive power of these approaches~\cite{DBLP:journals/corr/ForsterKLP16}.
-  This chapter introduces main approaches to construction of effectful computation
-  by example, with illustrations in Haskell and Frank programming languages.
-
   \section{Monads and monad transformers}
 
   Paper~\cite{Liang:1995:MTM:199448.199528} describes a concept of a monad

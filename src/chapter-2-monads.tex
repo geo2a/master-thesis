@@ -1,0 +1,82 @@
+\chapter{Monadic approach to computational effects}
+\label{cpt-parsers}
+
+  \section{Monadic parsers}
+  \label{cpt-parsers:monadic}
+
+    \subsection{Monads in Haskell}
+      Monads were firstly injected into programming languages context as a tool to
+      assign a denotational semantics to computational effects~\cite{Moggi:1991:NCM:116981.116984}. Later, the have been adopted as a programming
+      paradigm and introduced into functional programming languages~\cite{Wadler:1992:EFP:143165.143169}. Monads are sometimes refereed as a ``programmable semicolon'' --- a powerful way to construct sequences of computation with possible side-effect. Afterwards, even more notions from category theory were given first-class support in modern programming languages, providing programmers with highly abstract, powerfully expressive and mathematically structured ways to build software.
+
+      In \texttt{Haskell} programming language, monads are types that have an instance of \texttt{Monad} type class and satisfy three laws. They are used
+      to distinguish pure computations from ones having some kind of side effect:
+      mutable state, exceptions, non-determinism, etc.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+class Monad m where
+  (>>=)  :: m a -> (a -> m b)   -> m b
+  (>>)   :: m a ->  m b         -> m b
+  return ::   a                 -> m a
+  fail   :: String -> m a
+      \end{lstlisting}
+      \caption{\texttt{Monad} type class}
+      \label{listing:monadClass}
+      \end{figure}
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+return a >>= k                  =  k a
+m        >>= return             =  m
+m        >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
+      \end{lstlisting}
+      \caption{Monad laws}
+      \label{listing:monadLaws}
+      \end{figure}
+
+      The \lstinline{>>=} operation, also known as \emph{monadic bind}, represents
+      a, mentioned earlier, ``programmable semicolon''. It takes a value in a monadic context as it first argument, an action that transforms that value as a second argument and returns a transformed value in the same monadic context.
+
+      Monads have broad usage in functional programming. They are first-class citizens
+      in purely-functional languages like~\texttt{Haskell} and a wide range of~\texttt{Haskell}-libraries have monadic interface. Mainstream programming languages also
+      employ specific monads in a form of build-in language constructions,
+      i.e.~\texttt{LINQ} in~\texttt{C\#} or optionals in~\texttt{Swift}.
+
+      As it was previously said, monads are used to characterise types of computations with a particular side effect. But what if a computation may
+      potentially produce two or more effects? Then, means to combine several
+      computational effects are needed. Monadic approach provide notion of
+      ~\emph{monad transformer}~\cite{Liang:1995:MTM:199448.199528} --- a type that
+      may add properties of a given monad to any other. Monad transformers are widely
+      used in~\texttt{Haskell} to build computations carrying multiple side effects.
+
+
+    \subsection{Parser as a Monad}
+
+      Consider a simple type to represent a parser.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+type Parser a = String -> Maybe (a,String)
+      \end{lstlisting}
+      \caption{Basic parser type}
+      \label{listing:maybeParser}
+      \end{figure}
+
+      In this representation, parser is a
+      function from input stream to possibly non-present accepted result paired
+      with input stream remains.
+      Types similar to \texttt{Parser a} may be treated as effectful computation.
+      One way to represent computations with effects in~\texttt{Haskell}
+      programming language is to use a concept of \texttt{Monad}. This particular
+      type could be made an instance of \texttt{Monad} type class.
+      Comprehensive information about properties of parsers like one presented
+      above may be found in paper~\cite{monParsing}.
+
+      To extend capabilities and improve convenience of syntactic analysers, set of
+      effects of parser could be expanded: it is handy to run parsers in a configurable
+      environment or introduce logging. In this section two approaches to combination
+      of computational effects will be considered: monad transformers and extensible
+      effects.
+
+    \subsection{Factorising parser into monad transformers stack}

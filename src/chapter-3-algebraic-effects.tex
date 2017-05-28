@@ -1,126 +1,7 @@
-\chapter{Building parser combinators as effectful programmes}
+\chapter{Algebraic effects and effects handlers}
 \label{cpt-parsers}
 
-A parser is a necessary part of a broad range of software systems: from web browsers
-to compilers. Parsers may be automatically generated or hand-written. Like any
-software, parsers can carry implementation errors. One of the possible
-methods of development of robust and correct-by-design software is using a programming
-language with a rich type system. Modern programming languages offer facilities of
-lightweight program verification using strict static typing discipline.
-
-Parsing could be thought as a computation that operates over an input sequence of
-characters, carrying some state (i.e. current position in input) and have a
-possibility to fail. These features are computational effects. Chapter~\ref{cpt-effects}
-introduced the most popular approaches to the construction of effectful computations and
-this one show how these methods could be used to build parser combinators.
-
-One of the approaches to parser construction that benefits from eloquent type system
-is monadic parser combinators~\cite{monParsing}. Is has been widely accepted by the
-community and was used to implement industrial-grade \texttt{Haskell} libraries, such
-as \texttt{Parsec}~\cite{parsec} and \texttt{Attoparsec}~\cite{attoparsec}. This
-approach represents parser as a monad and produces parsers powerful enough to admit
-context-sensitive grammars. Section~\ref{cpt-parsers:monadic} gives an account to this kind of parsers.
-
-A parser could be represented not only by monadic computation but also by an
-applicative functor~\cite{Mcbride:2008:APE:1348940.1348941}. An applicative interface
-is less restrictive than monadic one, but even though, it is possible to capture
-context-free grammars. These parsers are described in
-section~\ref{cpt-parsers:applicative}.
-
-It is also feasible to represent an interface of a parser as an algebraic effect and
-the process of analysis as a handler for this effect. Unlike monads and applicative functors,
-algebraic effects do not still have wide support in popular programming languages.
-Section~\ref{cpt-parsers:alg-eff} shows how parsing could be expressed using this
-approach and provides examples in an experimental programming language~\texttt{Frank}
-that has built-in support for algebraic effects and handlers.
-
-  \section{Monadic parsers}
-  \label{cpt-parsers:monadic}
-
-    \subsection{Monads in Haskell}
-      Monads were firstly injected into programming languages context as a tool to
-      assign a denotational semantics to computational effects~\cite{Moggi:1991:NCM:116981.116984}. Later, the have been adopted as a programming
-      paradigm and introduced into functional programming languages~\cite{Wadler:1992:EFP:143165.143169}. Monads are sometimes refereed as a ``programmable semicolon'' --- a powerful way to construct sequences of computation with possible side-effect. Afterwards, even more notions from category theory were given first-class support in modern programming languages, providing programmers with highly abstract, powerfully expressive and mathematically structured ways to build software.
-
-      In \texttt{Haskell} programming language, monads are types that have an instance of \texttt{Monad} type class and satisfy three laws. They are used
-      to distinguish pure computations from ones having some kind of side effect:
-      mutable state, exceptions, non-determinism, etc.
-
-      \begin{figure}[h]
-      \begin{lstlisting}
-class Monad m where
-  (>>=)  :: m a -> (a -> m b)   -> m b
-  (>>)   :: m a ->  m b         -> m b
-  return ::   a                 -> m a
-  fail   :: String -> m a
-      \end{lstlisting}
-      \caption{\texttt{Monad} type class}
-      \label{listing:monadClass}
-      \end{figure}
-
-      \begin{figure}[h]
-      \begin{lstlisting}
-return a >>= k                  =  k a
-m        >>= return             =  m
-m        >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
-      \end{lstlisting}
-      \caption{Monad laws}
-      \label{listing:monadLaws}
-      \end{figure}
-
-      The \lstinline{>>=} operation, also known as \emph{monadic bind}, represents
-      a, mentioned earlier, ``programmable semicolon''. It takes a value in a monadic context as it first argument, an action that transforms that value as a second argument and returns a transformed value in the same monadic context.
-
-      Monads have broad usage in functional programming. They are first-class citizens
-      in purely-functional languages like~\texttt{Haskell} and a wide range of~\texttt{Haskell}-libraries have monadic interface. Mainstream programming languages also
-      employ specific monads in a form of build-in language constructions,
-      i.e.~\texttt{LINQ} in~\texttt{C\#} or optionals in~\texttt{Swift}.
-
-      As it was previously said, monads are used to characterise types of computations with a particular side effect. But what if a computation may
-      potentially produce two or more effects? Then, means to combine several
-      computational effects are needed. Monadic approach provide notion of
-      ~\emph{monad transformer}~\cite{Liang:1995:MTM:199448.199528} --- a type that
-      may add properties of a given monad to any other. Monad transformers are widely
-      used in~\texttt{Haskell} to build computations carrying multiple side effects.
-
-
-    \subsection{Parser as a Monad}
-
-      Consider a simple type to represent a parser.
-
-      \begin{figure}[h]
-      \begin{lstlisting}
-type Parser a = String -> Maybe (a,String)
-      \end{lstlisting}
-      \caption{Basic parser type}
-      \label{listing:maybeParser}
-      \end{figure}
-
-      In this representation, parser is a
-      function, taking input stream and returning a list of possible valid
-      variants of analysis in conjunction with corresponding input stream
-      remains. Empty list of result stands for completely unsuccessful attempt of
-      parsing, whereas multiple results mean ambiguity.
-
-      Types similar to \texttt{Parser a} may be treated as effectful computation.
-      To represent computations with effects a concept of
-      \texttt{Monad} is used in~\texttt{Haskell} programming language. This particular
-      type could be made an instance of \texttt{Monad} type class.
-      Comprehensive information about properties of parsers like one presented
-      above may be found in paper~\cite{monParsing}.
-
-      To extend capabilities and improve convenience of syntactic analysers, set of
-      effects of parser could be expanded: it is handy to run parsers in a configurable
-      environment or introduce logging. In this section two approaches to combination
-      of computational effects will be considered: monad transformers and extensible
-      effects.
-
-    \subsection{Factorising parser into monad transformers stack}
-
-  \section{Applicative parsing}
-  \label{cpt-parsers:applicative}
-
-  \section{Parsers as algebraic effects}
+  \section{Algebraic effects in Frank}
   \label{cpt-parsers:alg-eff}
 
   Algebraic effects and effects handlers provide an alternative to monads and monad
@@ -137,7 +18,7 @@ type Parser a = String -> Maybe (a,String)
   note on expressive power of Franks implementation of algebraic effects and
   handlers is made.
 
-  \subsection{As a combination of effects}
+  \subsection{Building parsers as a combination of effects}
 
     Section~\ref{cpt-effects:alg-effects} gives an account on algebraic effects and
     effects handlers and, in particular, on programming with these concepts in Frank
@@ -489,7 +370,7 @@ right (Document ([Header 1 (NonEmpty (["ToDo", "list"])),
       good example of usage of the facilities that Frank provides to build
       effectful computations.
 
-  \subsection{As a standalone effect}
+  \subsection{Parsers as a standalone effect}
 
     The minimal parser combinators interface could be described with a monolithic
     algebraic effect. It could bring parsers a usual a benefit of algebraic effects
@@ -556,4 +437,149 @@ interface Parser =
     proof-of-concept language that allows prototyping type-safe DSLs with precise
     control of side-effects.
 
+    \section{Extensible Effects: algebraic effects embedded in Haskell}
 
+    Paper~\cite{Kiselyov:2013:EEA:2578854.2503791} present extensible effects ---
+    an alternative to monad transformers
+    approach to typing computations with several interacting side effects.
+
+    The main idea of extensible effects is an analogy between effectful computations and
+    client-server communication. An expression that is about to introduce some side effect:
+    perform IO, throw an exception or something else like that must first make a \emph{request}
+    to some global authority which is in charge of system resources to handle this side effect.
+    The request describes an effectful action that needed to be done and a continuation that
+    must be executed after an action is performed.
+
+    In early variants of libraries similar to extensible effects, an authority that manages
+    requests was a separate concept, like an operating system kernel, or IO-actions
+    handler of GHC runtime. This manager possessed all the system resources (files,
+    memory, etc.): it has been considering every request and making a decision if it should be
+    fulfilled or rejected. This external effect interpreter had a great power, but lacked
+    flexibility.
+
+    More flexibility and modularity may be introduced with concept of algebraic effects and
+    effects handlers~\cite{DBLP:journals/jlp/BauerP15}, that inspired extensible effects.
+    Thus, some major points of extensible effects:
+
+    \begin{itemize}
+    \item Effects handlers are parts of users program: somehow analogous to exception handlers.
+    Every handler is authorised to manage effects of some part of program and produce effects by
+    itself, which are going to be taken care of by some other handler.
+
+    \item Effect typing system that tracks a type-level collection of effects active for every
+    computation. For collection here stands a notion of \texttt{Open Union} --- a type-indexed
+    coproduct of functors. An application of every handler affects the type:
+    handled effect is excluded from collection. Therefore, it could be statically
+    checked that all effects are handled.
+
+    \item Extensible effects exploits a notion of free monad to build effectful DSLs. An
+    instance of \texttt{Monad} type class provides programmer with set of familiar
+    \texttt{Haskell} techniques such as \texttt{do}-notation and applicative programming.
+    \end{itemize}
+
+    One of huge advantages of extensible effects in comparison to monad transformers is the
+    absence of need in boilerplate type class instance declaration to perform lifting. And
+    there is more: extensible effects permit computations with several similar effects without
+    losing a possibility of automatic lifting. Consider an example of function with two readable
+    environmental constants:
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+adder :: ( Member (Reader Int) r
+         , Member (Reader String) r) => Eff r Int
+adder = do
+  num <- ask
+  str <- ask
+  return $ num + read str
+    \end{lstlisting}
+    \caption{Effectful addition}
+    \label{listing:ExtEffAdder}
+    \end{figure}
+
+    Besides, extensible effects don't enforce an order of effects combination statically as monad
+    transformers stacks do, thus giving a precise control of effects interactions in runtime.
+    Next listing contains a computation and two handlers: first one doesn't preserve state in
+    case of failure and returns \texttt{Nothing}, but second one does and returns
+    \texttt{(0,Nothing)}.
+
+    \begin{figure}[h]
+    \begin{lstlisting}
+countdown :: ( Member Fail r
+             , Member (State Int) r) => Eff r ()
+countdown = do
+  state <- get
+  if state == (0 :: Int) then die
+  else put (state - 1) >> countdown
+
+runCountdown1 n = run $ runFail $ runState (n :: Int) $ countdown
+
+runCountdown2 n = run $ runState (n :: Int) $ runFail $ countdown
+    \end{lstlisting}
+    \caption{Stateful computation}
+    \label{listing:ExtEffCountdown}
+    \end{figure}
+
+    \subsection{Building parsers with extensible effects}
+
+      Consider basic primitive of the library ---
+      function that consumes a single item of input stream.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+item :: ( Member Fail r
+        , Member (State String) r) => Eff r Char
+item = do
+  s <- get
+  case s of [] -> die
+            (x:xs) -> put xs >> return x
+      \end{lstlisting}
+      \caption{Single item consumer}
+      \label{listing:ExtEffParsersItem}
+      \end{figure}
+
+      The type of this function declares effects performed by this function:
+      fallible computation and presence of state. Constraint~\texttt{Member Fail r} points out that set of effects~\texttt{r} must contain effect~\texttt{Fail}, whereas type of return
+      value~\texttt{Eff r Char} tells that function~\texttt{item} yields value
+      of type~\texttt{Char} and may perform effects from the list~\texttt{r}.
+
+      Generally, from syntactic point of view, declaration of the combinators based on
+      extensible effects is similar to regular monadic code. This is achieved by
+      type~\texttt{Eff r a} having an instance of~\texttt{Monad} type class.
+      \texttt{Eff r a} is a free monad constructed on top of functor~\texttt{r}
+      which is an open union of effects. As long as~\texttt{Eff r a} is a monad,
+      regular monadic do-notation and applicative style become available.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+sat :: ( Member Fail r
+       , Member (State String) r) => (Char -> Bool) -> Eff r Char
+sat p = do
+  (s :: String) <- get
+  x <- item
+  if p x then return x else (put s >> die)
+      \end{lstlisting}
+      \caption{Conditional consumer}
+      \label{listing:ExtEffParsersSat}
+      \end{figure}
+
+      Extensible effects, in contrast to monad transformers, allow to set an order of
+      effect handling just before running computation. Thus, same computation may
+      produce different behaviour, controlled by order of application of
+      handlers. For instance, in next listing types of handlers
+      ~\texttt{parse} and~\texttt{parse'} are different because~\texttt{parse}
+      handles~\texttt{Fail} after~\texttt{State} and yields pair of last occurred
+      state and possibly missing result of parsing, i.e. saves last state with no respect
+      to success of parsing. Conversely,~\texttt{parse'} handles~\texttt{State}
+      first and doesn't return any state in case of unsuccessful parsing.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+parse :: Eff (Fail :> (State s :> Void)) a -> s -> (s, Maybe a)
+parse p inp = run . runState inp . runFail $ p
+
+parse' :: Eff (State s :> (Fail :> Void)) w -> s -> Maybe (s, w)
+parse' p inp = run . runFail . runState inp $ p
+      \end{lstlisting}
+      \caption{Handle}
+      \label{listing:ExtEffParsersParse}
+      \end{figure}

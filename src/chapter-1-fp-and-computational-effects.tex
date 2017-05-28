@@ -1,0 +1,95 @@
+\chapter{Functional programming and computational effects}
+~\label{cpt-effects}
+
+Intro to FP: types: purity helps correctness; totality vs. non-termination; lalala
+
+Recent advances in theory of programming languages led to development and spreading
+of functional programming languages with advanced type systems. This provide
+software engineers a possibility to encode system specification in type-level, enforcing
+statically checked guaranties of correctness. A large cluster of errors is
+introduced into programs by uncontrolled side effects such as file system IO,
+network communication and mutable state. When many mainstream programming languages such as C++,
+Java and C\# follow static type discipline, they do not track
+side-effects, thus making it harder to reason about program correctness. In contrast,
+pure languages like Haskell and Idris forbid programs to execute effectful code
+without special type annotations.
+
+\begin{figure}[h]
+\begin {lstlisting}
+int plus(int x, int y) {
+  print("I'm mutating the World without you noticing!");
+  return x + y;
+}
+\end{lstlisting}
+\caption{Uncontrollable side-effect in impure language}
+\label{listing:effectfulPlus}
+\end{figure}
+
+\begin{figure}[h]
+\begin{lstlisting}
+plus :: Int -> Int -> Int
+plut x y = x + y
+\end{lstlisting}
+\caption{Pure Haskell function}
+\label{listing:purePlusHaskell}
+\end{figure}
+
+\begin{figure}[h]
+\begin{lstlisting}
+plusIO :: Int -> Int -> IO Int
+plutIO x y = do
+print "I'm mutating the World, but you know it"
+return (x + y)
+\end{lstlisting}
+\caption{Pure Haskell function}
+\label{listing:purePlusHaskell}
+\end{figure}
+
+After initial incorporation of side-effect control techniques in Haskell in
+form of Monads~\cite{Wadler:1992:EFP:143165.143169}, effects systems got a lot
+of development. Monadic approach has been enriched with the concept of monad
+transformers~\cite{Liang:1995:MTM:199448.199528} to provide a modular way of
+expressing computations with multiple side-effects. Even though monad
+transformers has been widely accepted as a modular approach to side effects control,
+they have some major drawbacks, that are addressed, for instance, by Kiselyov at al.~\cite{Kiselyov:2013:EEA:2578854.2503791}, and alternative approach --- Algebraic effects and effects handlers --- was proposed~\cite{DBLP:journals/jlp/BauerP15}
+~\cite{Kiselyov:2013:EEA:2578854.2503791}. Some studies were carried out to
+compare expressive power of these approaches~\cite{DBLP:journals/corr/ForsterKLP16}.
+This chapter introduces main approaches to construction of effectful computation
+by example, with illustrations in Haskell and Frank programming languages.
+
+\section{Effectful Domain-specific languages}
+
+\section{Parser combinators}
+
+A parser is a necessary part of a broad range of software systems: from web browsers
+to compilers. Parsers may be automatically generated or hand-written. Like any
+software, parsers can carry implementation errors. One of the possible
+methods of development of robust and correct-by-design software is using a programming
+language with a rich type system. Modern programming languages offer facilities of
+lightweight program verification using strict static typing discipline.
+
+Parsing could be thought as a computation that operates over an input sequence of
+characters, carrying some state (i.e. current position in input) and have a
+possibility to fail. These features are computational effects. Chapter~\ref{cpt-effects}
+introduced the most popular approaches to the construction of effectful computations and
+this one show how these methods could be used to build parser combinators.
+
+One of the approaches to parser construction that benefits from eloquent type system
+is monadic parser combinators~\cite{monParsing}. Is has been widely accepted by the
+community and was used to implement industrial-grade \texttt{Haskell} libraries, such
+as \texttt{Parsec}~\cite{parsec} and \texttt{Attoparsec}~\cite{attoparsec}. This
+approach represents parser as a monad and produces parsers powerful enough to admit
+context-sensitive grammars. Section~\ref{cpt-parsers:monadic} gives an account to this kind of parsers.
+
+A parser could be represented not only by monadic computation but also by an
+applicative functor~\cite{Mcbride:2008:APE:1348940.1348941}. An applicative interface
+is less restrictive than monadic one, but even though, it is possible to capture
+context-free grammars. These parsers are described in
+section~\ref{cpt-parsers:applicative}.
+
+It is also feasible to represent an interface of a parser as an algebraic effect and
+the process of analysis as a handler for this effect. Unlike monads and applicative functors,
+algebraic effects do not still have wide support in popular programming languages.
+Section~\ref{cpt-parsers:alg-eff} shows how parsing could be expressed using this
+approach and provides examples in an experimental programming language~\texttt{Frank}
+that has built-in support for algebraic effects and handlers.
