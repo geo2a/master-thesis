@@ -29,6 +29,10 @@ C\nolinebreak\hspace{-.05em}%
 % Неразрывный дефис, который допускает перенос внутри слов,
 % типа жёлто-синий: нужно писать жёлто"/синий.
 \makeatletter
-    \defineshorthand[russian]{"/}{\mbox{-}\bbl@allowhyphens}
+  \defineshorthand[english]{"/}{\babelhyphen{nobreak}}
+  \addto\extrasenglish{
+    \languageshorthands{english}
+    \useshorthands{"}
+  }
 \makeatother
 
