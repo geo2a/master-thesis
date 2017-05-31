@@ -6,26 +6,26 @@ In contrast with post-design testing, that doesn’t provide full
 correctness guarantees, formal methods provide a systematic approach for developing complex systems in a correct by construction manner. One reason of advancement of
 formal methods in comparison to testing is a maximal possible elimination of human errors. For instance, techniques known as model checking perform exhaustive search
 through entire space of possible states of the system and evaluating system status in
-every single state, completely excluding any possibility of non-specified behaviour (
-presuming the correctness of specification).
+every single state, completely excluding any possibility of non-specified behaviour
+(presuming the correctness of specification).
 
-One class of formal methods is advanced type systems provided by modern programming languages. Powerful yet lightweight formal verification techniques, provided by these languages are based on famous Curry-Howard correspondence --- a direct relationship between computer programs and mathematical
+One class of formal methods is advanced type systems of modern programming languages. Powerful yet lightweight formal verification techniques provided by these languages are based on famous Curry"/Howard correspondence --- a direct relationship between computer programs and mathematical
 proofs --- that was discovered by the American mathematician Haskell Curry and logician
 William Alvin Howard in late 1960s. A perfectly written Philip Wadler’s paper,
 called ``Propositions as Types''~\cite{Wadler:2015:PT:2847579.2699407}
 contains a great set of historical notes alongside with points of view on
-Curry-Howard correspondence from different fields of
-mathematics and computer science. Curry-Howard correspondence is of great value
+Curry"/Howard correspondence from different fields of
+mathematics and computer science. Curry"/Howard correspondence is of great value
 for software developers because it provides a possibility to formulate desired
-properties of programs in terms of types and automatically acquire proofs of
+properties of programs in terms of types and automatically check
 the correctness of those programs through type checking.
 
-Advances in type theory and theory of programming languages led to the development and spreading of effects systems --- a particular kind of type-guided verification providing a possibility to separate pure computations from ones flavoured with a computational side effect, life, for instance, file system IO. These technique
+Advances in type theory and theory of programming languages led to the development and spreading of effects systems --- a particular kind of type"/guided verification providing a possibility to separate pure computations from ones flavoured with a computational side effect, like, for instance, file system IO. These technique
 was first given an account by Moggi~\cite{Moggi:1991:NCM:116981.116984} who
 used monads to provide a denotational semantics to lambda calculus with effects, and then Wadler~\cite{Wadler:1992:EFP:143165.143169} gave monads a practical instantiation in Haskell programming language.
 
-Computational effects control techniques got plenty of attention both in academic and software engineering communities. As applications, such as, for example, parsers combinators~\cite{monParsing} were explored, a lot more requirements and demands
-were introduced: combine effects in a modular way, provide finer-grained control
+Computational effects control techniques got plenty of attention both in academic and software engineering communities. As applications, such as, for example, parser combinators~\cite{monParsing} were explored, a lot more requirements and demands
+were introduced: combine effects in a modular way, provide finer"/grained control
 for effects. This led to development of both monadic~\cite{Liang:1995:MTM:199448.199528} and alternative approaches~\cite{Mcbride:2008:APE:1348940.1348941}
 ~\cite{DBLP:journals/jlp/BauerP15}.
 
@@ -35,13 +35,14 @@ effectful programming:
 
 \begin{itemize}
   \item Monad transformers~\cite{Liang:1995:MTM:199448.199528} in~\texttt{Haskell}.
-  \item Algebraic effects and effects handlers in a form of extensible.
+  \item Algebraic effects and effects handlers~\cite{DBLP:journals/jlp/BauerP15}
+  in a form of extensible.
   effects~\cite{Kiselyov:2013:EEA:2578854.2503791} in~\texttt{Haskell}
   \item~\texttt{Frank}~\cite{DBLP:conf/popl/LindleyMM17} programming language featuring first-class support of algebraic
   effects and effects handlers.
 \end{itemize}
 
-Main results of this work were presented in \nth{4} international conference ``Tools and Methods of Program Analysis 2017''~\cite{tmpa} in Moscow and conference
+Main results of this work were presented in \nth{4} international conference ``Tools and Methods of Program Analysis 2017''~\cite{tmpa} in Moscow and in conference
 ``Programming languages and compilers 2017'' in Rostov-on-Don.
 Tell about scopus and BAK publications.
 
