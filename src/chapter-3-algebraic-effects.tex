@@ -9,14 +9,14 @@
   term of algebraic effects and the process of parsing as their handlers is a solid
   model problem to find out strengths and weaknesses of this approach.
 
-  This section describes leads to prototype implementations of parser
-  combinators libraries in experimental programming language
+  This section describes a prototype implementation of parser
+  combinators library in experimental programming language
   Frank~\cite{DBLP:conf/popl/LindleyMM17} which has first-class support for
   algebraic effects and effects handlers. Parsers may be represented either by
   combination of multiple effects, for instance, mutable state and possible failure,
-  or may be expressed as a monolith effect signature. In conclusion, a
-  note on expressive power of Franks implementation of algebraic effects and
-  handlers is made.
+  or may be expressed as a monolith effect signature. In conclusion, we make a
+  note on expressive power of Frank's implementation of algebraic effects and
+  handlers.
 
   \subsection{Building parsers as a combination of effects}
 
@@ -519,51 +519,110 @@ runCountdown2 n = run $ runState (n :: Int) $ runFail $ countdown
     \label{listing:ExtEffCountdown}
     \end{figure}
 
+    The rest of the section is dedicated a canonical example of effectful computation:
+    parser combinators. We use extensible effects to build a prototype of a parser combinators
+    library and then give a small account to performance benchmarking.
+
     \subsection{Building parsers with extensible effects}
 
-      Consider basic primitive of the library ---
-      function that consumes a single item of input stream.
+      Extensible effects are essentially an embedding of algebraic effects and effects handlers
+      into Haskell, therefore, the library has a lot in common with the Frank one, described
+      in the previous section. Nevertheless, Haskell is a much more mature language, hence
+      we are equipped with convenient features, that make our live easier.
+
+      We are going to represent parsers as computations with two side effects: possible failure
+      and mutable state of an input string.
+      Haskell's~\texttt{ConstraintKinds} language extension allows us to
+      a constraint alias that will help us to keep the type signatures of combinators concise:
 
       \begin{figure}[h]
       \begin{lstlisting}
-item :: ( Member Fail r
-        , Member (State String) r) => Eff r Char
+type Parsable r = (Member Fail r, Member (State String) r)
+
+type Parser r a = Parsable r => Eff r a
+      \end{lstlisting}
+      \caption{The effects of parser}
+      \label{listing:ExtEffCountdown}
+      \end{figure}
+
+      The~\texttt{Parsable} constraint declares the effects performed by parsers:
+      fallible computation and presence of state. Constraint~\texttt{Member Fail r} points out that set of effects~\texttt{r} must contain effect~\texttt{Fail}, whereas type of return
+      value~\texttt{Eff r Char} tells that function~\texttt{item} yields value
+      of type~\texttt{Char} and may perform effects from the list~\texttt{r}.
+
+      Consider the basic primitive of the library --- function that consumes
+      a single item of and input string.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+item :: Parser r Char
 item = do
   s <- get
-  case s of [] -> die
-            (x:xs) -> put xs >> return x
+  case s of
+    [] -> put s >> throwError ()
+    (x:xs) -> put xs >> pure x
       \end{lstlisting}
       \caption{Single item consumer}
       \label{listing:ExtEffParsersItem}
       \end{figure}
 
-      The type of this function declares effects performed by this function:
-      fallible computation and presence of state. Constraint~\texttt{Member Fail r} points out that set of effects~\texttt{r} must contain effect~\texttt{Fail}, whereas type of return
-      value~\texttt{Eff r Char} tells that function~\texttt{item} yields value
-      of type~\texttt{Char} and may perform effects from the list~\texttt{r}.
-
       Generally, from syntactic point of view, declaration of the combinators based on
       extensible effects is similar to regular monadic code. This is achieved by
       type~\texttt{Eff r a} having an instance of~\texttt{Monad} type class.
-      \texttt{Eff r a} is a free monad constructed on top of functor~\texttt{r}
+      \texttt{Eff r a} is a free monad constructed on top of the functor~\texttt{r}
       which is an open union of effects. As long as~\texttt{Eff r a} is a monad,
       regular monadic do-notation and applicative style become available.
 
+      Of course, unconditional consumption of the input stream without any actions
+      doesn't make much sense. Actually, we would prefer consuming some items to others. Thus,~\emph{conditional consumer} that checks if an item satisfies a
+      given predicate prior to consuming and fails otherwise, must be
+      implemented (~\ref{listing:ExtEffParsersSat}).
+
       \begin{figure}[h]
       \begin{lstlisting}
-sat :: ( Member Fail r
-       , Member (State String) r) => (Char -> Bool) -> Eff r Char
+sat :: (Char -> Bool) -> Parser r Char
 sat p = do
-  (s :: String) <- get
+  s <- get
   x <- item
-  if p x then return x else (put s >> die)
+  if p x then pure x else (put s >> throwError ())
       \end{lstlisting}
       \caption{Conditional consumer}
       \label{listing:ExtEffParsersSat}
       \end{figure}
 
+      \begin{figure}[h]
+      \begin{lstlisting}
+choose :: Parser r a -> Parser r a -> Parser r a
+choose ma mb = do
+  s <- get
+  catchError ma $ \(ea :: ()) -> do
+    put s
+    catchError mb $ \(eb :: ()) -> throwError ()
+      \end{lstlisting}
+      \caption{Alternative combinator}
+      \label{listing:ExtEffParsersChoose}
+      \end{figure}
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+many :: Parser r a -> Parser r [a]
+many v = many_v
+ where
+   many_v = some_v `choose` (pure [])
+   some_v = (fmap (:) v) <*> many_v
+
+some :: Parser r a -> Parser r [a]
+some v = some_v
+ where
+   many_v = some_v `choose` pure []
+   some_v = (fmap (:) v) <*> many_v
+      \end{lstlisting}
+      \caption{Repetition combinators}
+      \label{listing:ExtEffParsersChoose}
+      \end{figure}
+
       Extensible effects, in contrast to monad transformers, allow to set an order of
-      effect handling just before running computation. Thus, same computation may
+      effect handling just before running the computation. Thus, same computation may
       produce different behaviour, controlled by order of application of
       handlers. For instance, in next listing types of handlers
       ~\texttt{parse} and~\texttt{parse'} are different because~\texttt{parse}
@@ -583,3 +642,10 @@ parse' p inp = run . runFail . runState inp $ p
       \caption{Handle}
       \label{listing:ExtEffParsersParse}
       \end{figure}
+
+      Extensible effects are an embedding of algebraic effects and handlers in Haskell,
+      thus the sketched parser combinators library has a lot in common with the one
+      implemented in Frank (see previous section). However, as far as Extensible
+      Effects are implemented on top of free monads, programmer must adopt the monadic
+      style for definition of effectful computations and parsers implementation
+      become a bit more wordy than in Frank.
