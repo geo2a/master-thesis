@@ -1,82 +1,187 @@
 \chapter{Monadic approach to computational effects}
 \label{cpt-parsers}
 
-  \section{Monadic parsers}
-  \label{cpt-parsers:monadic}
+  Monads were firstly injected into programming languages context as a tool to
+  assign a denotational semantics to computational effects~\cite{Moggi:1991:NCM:116981.116984}. Later, the have been adopted as a programming
+  paradigm and introduced into functional programming languages~\cite{Wadler:1992:EFP:143165.143169}. Monads are sometimes refereed as a ``programmable semicolon'' --- a powerful way to construct sequences of computation with possible side effect. Afterwards, even more notions from category theory were given first"/class support in modern programming languages, providing programmers with highly abstract, powerfully expressive and mathematically structured ways to build software.
 
-    \subsection{Monads in Haskell}
-      Monads were firstly injected into programming languages context as a tool to
-      assign a denotational semantics to computational effects~\cite{Moggi:1991:NCM:116981.116984}. Later, the have been adopted as a programming
-      paradigm and introduced into functional programming languages~\cite{Wadler:1992:EFP:143165.143169}. Monads are sometimes refereed as a ``programmable semicolon'' --- a powerful way to construct sequences of computation with possible side-effect. Afterwards, even more notions from category theory were given first-class support in modern programming languages, providing programmers with highly abstract, powerfully expressive and mathematically structured ways to build software.
+    \section{Monads in Haskell}
 
-      In \texttt{Haskell} programming language, monads are types that have an instance of \texttt{Monad} type class and satisfy three laws. They are used
-      to distinguish pure computations from ones having some kind of side effect:
-      mutable state, exceptions, non-determinism, etc.
+    In \texttt{Haskell} programming language, monads are types that have an instance of \texttt{Monad} type class and satisfy three laws. They are used
+    to distinguish pure computations from ones having some kind of side effect:
+    mutable state, exceptions, non"/determinism, etc.
 
-      \begin{figure}[h]
-      \begin{lstlisting}
+    \begin{figure}[h]
+    \begin{lstlisting}
 class Monad m where
   (>>=)  :: m a -> (a -> m b)   -> m b
   (>>)   :: m a ->  m b         -> m b
   return ::   a                 -> m a
   fail   :: String -> m a
-      \end{lstlisting}
-      \caption{\texttt{Monad} type class}
-      \label{listing:monadClass}
-      \end{figure}
+    \end{lstlisting}
+    \caption{\texttt{Monad} type class}
+    \label{listing:monadClass}
+    \end{figure}
 
-      \begin{figure}[h]
-      \begin{lstlisting}
+    \begin{figure}[h]
+    \begin{lstlisting}
 return a >>= k                  =  k a
 m        >>= return             =  m
 m        >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
-      \end{lstlisting}
-      \caption{Monad laws}
-      \label{listing:monadLaws}
-      \end{figure}
+    \end{lstlisting}
+    \caption{Monad laws}
+    \label{listing:monadLaws}
+    \end{figure}
 
-      The \lstinline{>>=} operation, also known as \emph{monadic bind}, represents
-      a, mentioned earlier, ``programmable semicolon''. It takes a value in a monadic context as it first argument, an action that transforms that value as a second argument and returns a transformed value in the same monadic context.
+    The \lstinline{>>=} operation, also known as \emph{monadic bind}, represents
+    a, mentioned earlier, ``programmable semicolon''. It takes a value in a monadic context as it first argument, an action that transforms that value as a second argument and returns a transformed value in the same monadic context.
 
-      Monads have broad usage in functional programming. They are first-class citizens
-      in purely-functional languages like~\texttt{Haskell} and a wide range of~\texttt{Haskell}-libraries have monadic interface. Mainstream programming languages also
-      employ specific monads in a form of build-in language constructions,
-      i.e.~\texttt{LINQ} in~\texttt{C\#} or optionals in~\texttt{Swift}.
+    Monads have broad usage in functional programming. They are first-class citizens
+    in purely-functional languages like~\texttt{Haskell} and a wide range of~\texttt{Haskell}"/libraries have monadic interface. Mainstream programming languages also
+    employ specific monads in a form of build-in language constructions,
+    i.e.~\texttt{LINQ} in~\texttt{\cs} or optionals in~\texttt{Swift}.
 
-      As it was previously said, monads are used to characterise types of computations with a particular side effect. But what if a computation may
-      potentially produce two or more effects? Then, means to combine several
-      computational effects are needed. Monadic approach provide notion of
-      ~\emph{monad transformer}~\cite{Liang:1995:MTM:199448.199528} --- a type that
-      may add properties of a given monad to any other. Monad transformers are widely
-      used in~\texttt{Haskell} to build computations carrying multiple side effects.
+    As it was previously said, monads are used to characterise types of computations with a particular side effect. But what if a computation may
+    potentially produce two or more effects? Then, means to combine several
+    computational effects are needed. Monadic approach provide notion of
+    ~\emph{monad transformer}~\cite{Liang:1995:MTM:199448.199528} --- a type that
+    may add properties of a given monad to any other. Monad transformers are widely
+    used in~\texttt{Haskell} to build computations carrying multiple side effects.
 
+  \section{Monadic parsers}
+  \label{cpt-parsers:monadic}
 
-    \subsection{Parser as a Monad}
+    Consider a simple type to represent a parser.
 
-      Consider a simple type to represent a parser.
+    \begin{figure}[h]
+    \begin{lstlisting}
+type Parser a = String -> Maybe (a,String)
+    \end{lstlisting}
+    \caption{Basic parser type}
+    \label{listing:maybeParser}
+    \end{figure}
+
+    In this representation, parser is a
+    function from input stream to possibly non-present accepted result paired
+    with input stream remains.
+    Types similar to \texttt{Parser a} may be treated as effectful computation.
+    One way to represent computations with effects in~\texttt{Haskell}
+    programming language is to use a concept of \texttt{Monad}. This particular
+    type could be made an instance of \texttt{Monad} type class.
+    Comprehensive information about properties of parsers like one presented
+    above may be found in paper~\cite{monParsing}.
+
+    To extend capabilities and improve convenience of syntactic analysers, set of
+    effects of parser could be expanded: it is handy to run parsers in a configurable
+    environment or introduce logging. In this section two approaches to combination
+    of computational effects will be considered: monad transformers and extensible
+    effects.
+
+    \subsection{Parser as a monad transformer stack}
+
+      Monad transformer is a concept which lets to enrich a given monad with a
+      property of other monad. Multiple monad transformers may be combined
+      together to form monad stack, that is, a monad possessing all properties of
+      it's components.
+
+      Monadic parser combinators library developed in this work also uses two-layer monad
+      stack: state and either,
+      where the last one provides effect of possibility of error. Thus, type for parser
+      takes a following form.
 
       \begin{figure}[h]
       \begin{lstlisting}
-type Parser a = String -> Maybe (a,String)
+newtype Parser t a = Parser (
+    StateT (ParserState t) (Either (ErrorReport t)) a
+  ) deriving ( Functor, Applicative, Monad
+             , MonadState (ParserState t)
+             , MonadError (ErrorReport t)
+             )
       \end{lstlisting}
-      \caption{Basic parser type}
-      \label{listing:maybeParser}
+      \caption{Parser monad stack}
+      \label{listing:mtlParser}
       \end{figure}
 
-      In this representation, parser is a
-      function from input stream to possibly non-present accepted result paired
-      with input stream remains.
-      Types similar to \texttt{Parser a} may be treated as effectful computation.
-      One way to represent computations with effects in~\texttt{Haskell}
-      programming language is to use a concept of \texttt{Monad}. This particular
-      type could be made an instance of \texttt{Monad} type class.
-      Comprehensive information about properties of parsers like one presented
-      above may be found in paper~\cite{monParsing}.
+      This representation of a parsers also is parametrised with type of input stream.
+      Types~\texttt{ParserState} and~\texttt{ErrorReport} are algebraic
+      data types for representing parser's state and possible analysis errors
+      respectively.
 
-      To extend capabilities and improve convenience of syntactic analysers, set of
-      effects of parser could be expanded: it is handy to run parsers in a configurable
-      environment or introduce logging. In this section two approaches to combination
-      of computational effects will be considered: monad transformers and extensible
-      effects.
+      The most low-level primitive which serves as a basis for all parser combinators
+      is a parser that consumes a single item from input stream.
 
-    \subsection{Factorising parser into monad transformers stack}
+      \begin{figure}[h]
+      \begin{lstlisting}
+item :: TM.TextualMonoid t => Parser t Char
+item = do
+  state  <- get
+  let s = TM.splitCharacterPrefix . remainder $ state
+  case s of
+    Nothing -> throwError (EmptyRemainder "item",state)
+    Just (c,rest) -> do
+      let (c,rest) = fromJust s
+      put (ParserState {position = updatePos (position state) c
+                       , remainder = rest})
+      return c
+      \end{lstlisting}
+      \caption{Unconditional single item consumer}
+      \label{listing:mtlParserItem}
+      \end{figure}
+
+      More advanced parsers from developed library: conditional consumer and
+      given string consumer.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+sat :: TM.TextualMonoid t => (Char -> Bool) -> Parser t Char
+sat p = do
+  state <- get
+  x <- item `overrideError` (EmptyRemainder "sat")
+  if p x then return x else
+    throwError (UnsatisfiedPredicate "general",state)
+      \end{lstlisting}
+      \caption{Conditional consumer}
+      \label{listing:mtlParserSat}
+      \end{figure}
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+string :: TM.TextualMonoid t => String -> Parser t String
+string s = do
+  state <- get
+  (mapM char s) `overrideError`
+    (UnsatisfiedPredicate ("string " ++ s))
+      \end{lstlisting}
+      \caption{Parser for a static string}
+      \label{listing:mtlParserString}
+      \end{figure}
+
+      To actually perform parsing, it's necessary to implement a function that
+      runs a computation. It's need to be
+      pointed out, that order of effect handling is statically encoded in type of
+      monad stack.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+parse :: TM.TextualMonoid t =>
+  Parser t a -> t -> Either (ErrorReport t) (a,ParserState t)
+parse (Parser p) s =
+  runStateT p (ParserState {remainder = s, position = initPos})
+    where initPos = (1,1)
+      \end{lstlisting}
+      \caption{Conditional consumer}
+      \label{listing:mtlParserSta}
+      \end{figure}
+
+      Overall, a concept of monad transformers has a considerable convenience in programming due to
+      its maturity and popularity. However, this
+      approach lacks flexibility, doesn't permit stacks with several homogeneous
+      effects (for instance, multiple~\texttt{StateT} transformers) without
+      losing automatic lifting (~\texttt{lift}) and requires boilerplate
+      type class instance declaration.
+
+      The next chapter considers different method of constructing parser combinators: one
+      based on algebraic effects and effects handlers --- an alternative framework of construction of effectful computation. We are going to present two prototype
+      parser combinators libraries, one embedded into Haskell by means of extensible
+      effects, and another implemented in Frank --- an experimental programming language
+      with native support foe algebraic effects.
