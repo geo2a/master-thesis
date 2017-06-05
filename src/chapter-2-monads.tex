@@ -1,13 +1,13 @@
 \chapter{Monadic approach to computational effects}
 \label{cpt-parsers}
 
-  Monads were firstly injected into programming languages context as a tool to
-  assign a denotational semantics to computational effects~\cite{Moggi:1991:NCM:116981.116984}. Later, the have been adopted as a programming
-  paradigm and introduced into functional programming languages~\cite{Wadler:1992:EFP:143165.143169}. Monads are sometimes refereed as a ``programmable semicolon'' --- a powerful way to construct sequences of computation with possible side effect. Afterwards, even more notions from category theory were given first"/class support in modern programming languages, providing programmers with highly abstract, powerfully expressive and mathematically structured ways to build software.
+  Monads were initially injected into programming languages context by Moggi as a tool to
+  assign a denotational semantics to computational effects~\cite{Moggi:1991:NCM:116981.116984}. Later, Wadler adopted monads as a programming
+  paradigm and introduced them into functional programming languages~\cite{Wadler:1992:EFP:143165.143169}. Monads are sometimes refereed as a ``programmable semicolon'' --- a powerful way to construct sequences of computation with possible side effect. Afterwards, even more notions from category theory were given first"/class support in modern programming languages, providing programmers with highly abstract, powerfully expressive and mathematically structured ways to build software.
 
     \section{Monads in Haskell}
 
-    In \texttt{Haskell} programming language, monads are types that have an instance of \texttt{Monad} type class and satisfy three laws. They are used
+    In Haskell programming language, monads are types that have an instance of \texttt{Monad} type class and satisfy three laws. They are used
     to distinguish pure computations from ones having some kind of side effect:
     mutable state, exceptions, non"/determinism, etc.
 
@@ -34,19 +34,93 @@ m        >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
     \end{figure}
 
     The \lstinline{>>=} operation, also known as \emph{monadic bind}, represents
-    a, mentioned earlier, ``programmable semicolon''. It takes a value in a monadic context as it first argument, an action that transforms that value as a second argument and returns a transformed value in the same monadic context.
+    a mentioned earlier ``programmable semicolon''. It takes a value in a monadic context as it first argument, an action that transforms that value as a second argument and returns a transformed value in the same monadic context.
 
     Monads have broad usage in functional programming. They are first-class citizens
-    in purely-functional languages like~\texttt{Haskell} and a wide range of~\texttt{Haskell}"/libraries have monadic interface. Mainstream programming languages also
+    in purely-functional languages like Haskell and a wide range of Haskell"/libraries have monadic interface. Mainstream programming languages also
     employ specific monads in a form of build-in language constructions,
-    i.e.~\texttt{LINQ} in~\texttt{\cs} or optionals in~\texttt{Swift}.
+    i.e. LINQ in~\cs or optionals in Swift.
 
     As it was previously said, monads are used to characterise types of computations with a particular side effect. But what if a computation may
     potentially produce two or more effects? Then, means to combine several
     computational effects are needed. Monadic approach provide notion of
     ~\emph{monad transformer}~\cite{Liang:1995:MTM:199448.199528} --- a type that
     may add properties of a given monad to any other. Monad transformers are widely
-    used in~\texttt{Haskell} to build computations carrying multiple side effects.
+    used in Haskell to build computations carrying multiple side effects.
+
+    \subsection{Monad transformers}
+
+      Paper~\cite{Liang:1995:MTM:199448.199528} describes a concept of a monad
+      transformer --- a building block for types describing computations with
+      multiple side effects. Every transformer lets to add a particular
+      effect, e.g. mutable state, configuration, exceptions, to a given monad.
+      Transformers are put on top of a base monad to form a \emph{monad stack} --- a
+      type characterising a computation with multiple side effects. Consider
+      an example of a function in a monad combining effects of mutable state and
+      configuration (listing~\ref{listing:mtlAdder}).
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+adder :: StateT String (Reader Int) Int
+adder = do
+  str <- get
+  num <- ask
+  return $ num + read str
+
+adder' :: (MonadState String m, MonadReader Int m) => m Int
+adder' = ...
+      \end{lstlisting}
+      \caption{Effectful adder based on monad transformers}
+      \label{listing:mtlAdder}
+      \end{figure}
+
+      Here \texttt{adder} and \texttt{adder'} describe the same computation, but the first
+      function is bounded to specific monad stack, while second just restricts effects
+      that the stack ought to provide.
+
+      One characteristic of monad stacks is that ordering of monads is statically encoded
+      in the type, so there is no runtime control of effect interaction.
+      The Second problem of monad transformers is a need to write a lot of boilerplate
+      type class instances, that is, to add a new effect, every possible combination
+      of newly added effect with existing ones must be covered with instances to provide
+      automatic lifting, thus $\mathcal{O}(n^2)$ instances must be written,
+      where $n$ is a number of monad transformers provided by the developing library.
+
+      \begin{figure}[h]
+      \begin{lstlisting}
+class Monad m => MonadNew a m where
+  action1 :: m a
+  action2 :: m ()
+
+instance MonadNew m => MonadNew (ExceptT e m) where
+  action1 = lift action1
+  action2 = lift action2
+
+instance MonadNew m => MonadNew (IdentityT m) where
+  action1 = lift action1
+  action2 = lift action2
+
+  ...
+      \end{lstlisting}
+      \caption{Monad classes and instances for lifting}
+      \label{listing:mtlLift}
+      \end{figure}
+
+      And, finally, monad transformers do not provide a way to express computations that
+      produce several homogeneous effects, e.g. two \texttt{State} effects, without
+      sacrificing automated lifting.
+
+      Monad transformers are well established abstraction for building modular effectful
+      computations. It has been widely accepted by Haskell community and a lot of
+      useful libraries have been implemented on top of it. Nevertheless, it has some
+      flaws regarding its convenience of use. Lately, algebraic effects and effects
+      handlers --- an alternative approach to structuring of effectful computations
+      has emerged. It has received wide account in recent
+      publications~\cite{DBLP:journals/jlp/BauerP15}~\cite{Kiselyov:2013:EEA:2578854.2503791}
+      and has several implementations in programming
+      languages~\cite{Kiselyov:2013:EEA:2578854.2503791}~\cite{DBLP:conf/popl/LindleyMM17}.
+      The third chapter of this thesis gives a brief overview of two
+      implementations: extensible effects library for Haskell and Frank programming language.
 
   \section{Monadic parsers}
   \label{cpt-parsers:monadic}
@@ -63,19 +137,21 @@ type Parser a = String -> Maybe (a,String)
 
     In this representation, parser is a
     function from input stream to possibly non-present accepted result paired
-    with input stream remains.
-    Types similar to \texttt{Parser a} may be treated as effectful computation.
-    One way to represent computations with effects in~\texttt{Haskell}
+    with the input stream remains.
+    Types similar to \texttt{Parser} may be treated as effectful computation.
+    One way to represent computations with effects in Haskell
     programming language is to use a concept of \texttt{Monad}. This particular
     type could be made an instance of \texttt{Monad} type class.
     Comprehensive information about properties of parsers like one presented
     above may be found in paper~\cite{monParsing}.
 
-    To extend capabilities and improve convenience of syntactic analysers, set of
-    effects of parser could be expanded: it is handy to run parsers in a configurable
-    environment or introduce logging. In this section two approaches to combination
-    of computational effects will be considered: monad transformers and extensible
-    effects.
+    To make parsers more modular, extend capabilities and improve convenience of
+    syntactic analysers, the \texttt{Parser} effect could be factorised into a set of
+    primitive effects. Moreover, the set of effect may be extended: it is handy to
+    run parsers in a configurable environment or introduce logging.
+    This section gives an overview to monadic monad transformers: a monadic framework
+    for to build modular effectful computations. As an example, we give a sketch of
+    monadic parser combinators library.
 
     \subsection{Parser as a monad transformer stack}
 
