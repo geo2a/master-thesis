@@ -1,15 +1,13 @@
 
 
 % макросы для начала введения и заключения
-\newcommand{\Intro}{\addsec{Introduction}}
-\ifthenelse{\value{worktype} > 1}{%
-    \renewcommand{\Intro}{\addchap{Introduction}}%
-}
+\newcommand{\Ackns}{\addchap{Acknowledgements}}
 
-\newcommand{\Conc}{\addsec{Conclusion}}
-\ifthenelse{\value{worktype} > 1}{%
-    \renewcommand{\Conc}{\addchap{Conclusion}}%
-}
+\newcommand{\Intro}{\addchap{Introduction}}
+
+\newcommand{\Goal}{\addchap{Goal statement}}
+
+\newcommand{\Conc}{\addchap{Conclusion}}
 
 % Правильные значки для нестрогих неравенств и пустого множества
 \renewcommand {\le} {\leqslant}
