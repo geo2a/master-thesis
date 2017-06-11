@@ -1,5 +1,5 @@
 \chapter{Monadic approach to computational effects}
-\label{cpt-parsers}
+\label{cpt-monads}
 
   Monads were initially injected into programming languages context by Moggi as a tool to
   assign a denotational semantics to computational effects~\cite{Moggi:1991:NCM:116981.116984}. Later, Wadler adopted monads as a programming
@@ -151,7 +151,9 @@ type Parser a = String -> Maybe (a,String)
     run parsers in a configurable environment or introduce logging.
     This section gives an overview to monadic monad transformers: a monadic framework
     for to build modular effectful computations. As an example, we give a sketch of
-    monadic parser combinators library.
+    monadic parser combinators library. We do not give the complete implementation
+    here, because it's API is fairly similar to one of library implemented in
+    Frank programming language and discussed in chapter~\ref{cpt-alg-eff}.
 
     \subsection{Parser as a monad transformer stack}
 
@@ -220,6 +222,9 @@ sat p = do
       \label{listing:mtlParserSat}
       \end{figure}
 
+      To parse terminals it's convenient to introduce the parser that accepts a
+      specific string.
+
       \begin{figure}[h]
       \begin{lstlisting}
 string :: TM.TextualMonoid t => String -> Parser t String
@@ -245,19 +250,50 @@ parse (Parser p) s =
   runStateT p (ParserState {remainder = s, position = initPos})
     where initPos = (1,1)
       \end{lstlisting}
-      \caption{Conditional consumer}
-      \label{listing:mtlParserSta}
+      \caption{Running the parser}
+      \label{listing:mtlParserParse}
       \end{figure}
 
-      Overall, a concept of monad transformers has a considerable convenience in programming due to
-      its maturity and popularity. However, this
-      approach lacks flexibility, doesn't permit stacks with several homogeneous
-      effects (for instance, multiple~\texttt{StateT} transformers) without
-      losing automatic lifting (~\texttt{lift}) and requires boilerplate
-      type class instance declaration.
+      \subsection{Performance benchmark}
+      \label{cpt-monads:parsers-bench}
 
-      The next chapter considers different method of constructing parser combinators: one
-      based on algebraic effects and effects handlers --- an alternative framework of construction of effectful computation. We are going to present two prototype
-      parser combinators libraries, one embedded into Haskell by means of extensible
-      effects, and another implemented in Frank --- an experimental programming language
-      with native support foe algebraic effects.
+      Here are the result of performance benchmarks of the developed parser
+      combinators library. Benchmarks were done using the Haskell Criterion
+      library~\cite{criterion}.
+
+      \begin{tabular}{|| c c c||}
+        \hline
+                      & Estimate & Confidence interval\\
+        \hline\hline
+        Mean time     & 121 $\mu$s   & [119 $\mu$s, 126 $\mu$s] \\
+        $\sigma$      & 10.0 $\mu$s  & [20.2 $\mu$s, 3.84 $\mu$s] \\
+        \hline
+      \end{tabular}
+
+      \begin{figure}[h]
+      \includegraphics[scale=0.4]{images/monad-trans.png}
+      \caption{Monad transformers parsers benchmark}
+      \label{mtlParserBench}
+      \end{figure}
+
+      The benchmarking was performed for a parser of a Markdown"/like language
+      implemented using this library. The benchmarked action was parsing of a
+      file of size about 3 kilobytes. The benchmark, together with the source code
+      of the library and the parser may be found in the library's GitHub
+      repository~\cite{mdParse}.
+
+
+    \section{Conclusion}
+
+    Overall, a concept of monad transformers has a considerable convenience in programming due to
+    its maturity and popularity. However, this
+    approach lacks flexibility, doesn't permit stacks with several homogeneous
+    effects (for instance, multiple~\texttt{StateT} transformers) without
+    losing automatic lifting (~\texttt{lift}) and requires boilerplate
+    type class instance declaration.
+
+    The next chapter considers different method of constructing parser combinators: one
+    based on algebraic effects and effects handlers --- an alternative framework of construction of effectful computation. We are going to present two prototype
+    parser combinators libraries, one embedded into Haskell by means of extensible
+    effects, and another implemented in Frank --- an experimental programming language
+    with native support foe algebraic effects.

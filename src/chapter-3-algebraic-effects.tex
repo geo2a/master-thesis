@@ -523,6 +523,9 @@ runCountdown2 n = run $ runState (n :: Int) $ runFail $ countdown
     The rest of the section is dedicated a canonical example of effectful computation:
     parser combinators. We use extensible effects to build a prototype of a parser combinators
     library and then give a small account to performance benchmarking.
+    We do not give the complete implementation here, because it's API is fairly
+    similar to one of library implemented in Frank programming language and
+    discussed earlier in this chapter.
 
     \subsection{Building parsers with extensible effects}
 
@@ -591,6 +594,12 @@ sat p = do
       \label{listing:ExtEffParsersSat}
       \end{figure}
 
+      Consider the implementations of alternative (listing~\ref{listing:ExtEffParsersChoose})
+      and repetition (listing~\ref{listing:ExtEffParsersManySome}) combinators. We
+      do not go in much details here because those combinators are quite similar
+      to ones of the Frank library. The only difference is a need to write
+      code in monad"/flavoured style instead of direct applicative.
+
       \begin{figure}[h]
       \begin{lstlisting}
 choose :: Parser r a -> Parser r a -> Parser r a
@@ -619,7 +628,7 @@ some v = some_v
    some_v = (fmap (:) v) <*> many_v
       \end{lstlisting}
       \caption{Repetition combinators}
-      \label{listing:ExtEffParsersChoose}
+      \label{listing:ExtEffParsersManySome}
       \end{figure}
 
       Extensible effects, in contrast to monad transformers, allow to set an order of
@@ -643,6 +652,37 @@ parse' p inp = run . runFail . runState inp $ p
       \caption{Handle}
       \label{listing:ExtEffParsersParse}
       \end{figure}
+
+      \subsection{Performance benchmark}
+
+      Here are the result of performance benchmarks of the developed parser
+      combinators library. Benchmarks were done using the Haskell Criterion
+      library~\cite{criterion}.
+
+      \begin{tabular}{|| c c c||}
+        \hline
+                      & Estimate & Confidence interval\\
+        \hline\hline
+        Mean time     & 7.53 ms  & [7.44 ms, 7.66 ms] \\
+        $\sigma$      & 289 $\mu$s   & [194 $\mu$s, 436 $\mu$s] \\
+        \hline
+      \end{tabular}
+
+      \begin{figure}[h]
+      \includegraphics[scale=0.4]{images/freer.png}
+      \caption{Monad transformers parsers benchmark}
+      \label{mtlParserBench}
+      \end{figure}
+
+      The benchmarking was performed for a parser of a Markdown"/like language
+      implemented using this library. The benchmarked action was parsing of a
+      file of size about 3 kilobytes. The benchmark, together with the source code
+      of the library and the parser may be found in the library's GitHub
+      repository~\cite{extEffParsers}.
+
+      This benchmark shows extensible effects to work slower in comparison to the monad transformers based implementation (see chapter~\ref{cpt-monads:parsers-bench}).
+
+      \subsection{Conclusion}
 
       Extensible effects are an embedding of algebraic effects and handlers in Haskell,
       thus the sketched parser combinators library has a lot in common with the one
