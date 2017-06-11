@@ -1,3 +1,28 @@
 \Conc
 
-Describe results in one page. Some words on possible future works.
+This thesis contributes to the development of approaches to effectful computation.
+Implementations of three parser combinators libraries based on three
+effectful computation frameworks are presented: one based on Haskell monad transformers;
+another implemented with extensible effects~--- an embedding of algebraic effects
+and effects handlers into Haskell; and a third one is a prototype implementation
+of a parser combinators library in Frank~--- an experimental programming language
+with native support for programming with algebraic effects and effects handlers.
+
+The developed libraries demonstrate advantages and disadvantages of the considered
+approaches. The thesis also gives an account to performance benchmarking of the monad
+transformers and extensible effects based libraries.
+
+By building the prototype parsing library in Frank, we found out the limit of
+expressibility of algebraic effects in Frank: currently, it is impossible to
+declare effects which would have commands yielding results of different types;
+thus making impossible to implement full"/fledged parser as a monolithic effect.
+A possible future work may include an extension of Frank's effect system to support
+existential quantification for commands of effect interfaces.
+
+The last chapter of the thesis describes an application of functional programming
+language with side"/effects control to development of real"/life software. We
+present the architecture and explain the implementation details of a distributed
+system. We convey out experience on how advanced type system features may improve
+the maintainability of a code base, make a development process more structured,
+and, as a result, lead to a more reliable software.
+
