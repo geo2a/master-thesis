@@ -3,18 +3,15 @@
 
 Recent advances in the theory of programming languages led to the development and spreading
 of functional programming languages with advanced type systems. This provide
-software engineers with a possibility to encode system specification in type-level, enforcing
+software engineers with a possibility to encode system specification in type"/level, enforcing
 statically checked guarantees of correctness. A large cluster of errors is
 introduced into programs by uncontrolled side effects such as file system IO,
-network communication and mutable state. When many mainstream programming languages such as \cpp,
-Java and \cs~follow static type discipline, they do not track
-side-effects, thus making it harder to reason about program correctness. In contrast,
-pure languages like Haskell and Idris forbid programs to execute effectful code
-without special type annotations.
-
-The development of approaches to the structuring of computations with side effects
-and implementations of these approaches in programming languages has an exciting
-history. This chapter gives a historical excursion.
+network communication and mutable state. While many mainstream programming languages
+such as \cpp, Java and \cs~follow static type discipline, they do not track
+side-effects, thus making it harder to reason about program correctness. Being an impure
+language, Java has a feature of~\emph{checked exceptions} that might be considered a very simple
+effect system specialised for exception handling. In contrast, pure languages like Haskell and
+Idris oblige all kinds of effectful programs to have special type markers.
 
 \begin{figure}[h]
 \begin {lstlisting}
@@ -40,17 +37,21 @@ plut x y = x + y
 \begin{lstlisting}
 plusIO :: Int -> Int -> IO Int
 plutIO x y = do
-print "I'm mutating the World, but you know it"
-return (x + y)
+  print "I'm mutating the World, but you know it"
+  return (x + y)
 \end{lstlisting}
-\caption{Pure Haskell function}
+\caption{Impure Haskell function with an effect annotation}
 \label{listing:purePlusHaskell}
 \end{figure}
 
-\section{Origins of side"/effects control}
+The development of approaches to the structuring of computations with side effects
+and implementations of these approaches in programming languages has an exciting
+history. This chapter gives a historical excursion.
+
+\section{Origins of side effects control}
 
 From the very beginning, programming languages have been created to be the lingua franca
-for humans and machines. And compilers must be the translators.
+for humans and machines. And the compilers must have been the translators.
 Therefore, the evolution of programming languages and compilers is
 massively affected by the dichotomy between the readability for humans and efficiency
 of machine code generation. This dichotomy was one of the primary motivations for
@@ -61,7 +62,7 @@ Software, be it a number cruncher or a compiler, or
 an accounting system, is not likely to be developed and maintained by the efforts
 of one person. Therefore, the syntax of a programming language must be readable,
 and the semantics must be clear and adequate. Moreover, in some fields errors in
-software are impossible to tolerate. The need to build correct programmes lead to the
+software are impossible to tolerate. The need to build correct programmes leads to the
 development of pre and post-development software verification techniques. The first
 category includes various kinds of testing: unit testing, test-driven development,
 functional and integration testing. But the bad thing about testing is that it's,
@@ -71,35 +72,36 @@ to construct only correct programmes, to make the incorrect ones unrepresentable
 This leads to the second category of software verification: the one based
 on~\emph{formal methods} and, more specifically, type systems of programming
 languages. It would be great to design the language which would reject incorrect
-programmes, right? That is exactly what an adequate type system can do.
+programmes. And that is exactly what an adequate type system can do.
 
 So, every programming language has a set of built-in constructions and syntactic rules.
 Programmers could take the constructions and combine them with the rules. But the programming
-language also have a semantics --- a way to assign a~\emph{meaning} to every ~\emph{term}
+language also have a semantics~--- a way to assign a~\emph{meaning} to every ~\emph{term}
 of the language. There are several approaches to describe programming language
-semantics, including,~\emph{operations},~\emph{denotational}, and~\emph{axiomatic}.
-And the task for programming language designers is to construct
-the language in a way when the terms with inadequate semantics would be rejected.
+semantics, including ~\emph{operational},~\emph{denotational}, and~\emph{axiomatic}.
+And the task for the programming language designers is to construct
+the language in a way when the terms with inadequate semantics would be rejected
+by the type system.
 
 A classical example of how type system could help to introduce correctness control into
-a programming language is the difference between untyped $\lambda$"/calculus and simply
+a programming language is the difference between the untyped $\lambda$"/calculus and the simply
 typed $\lambda$"/calculus. If we consider a property of~\emph{strong normalisation}
-of $\beta$"/reduction as a criterion, then it is shown that for untyped $\lambda$"/calculus
-$\beta$"/reduction as a rewrite rule is not strongly normalising --- i.e. there are
-such things as non-terminating computations or ``infinite loops''. Whereas
-for simply typed $\lambda$"/calculus $\beta$"/reduction is strongly normalising;
+of $\beta$"/reduction as a criterion, then it is shown that for the untyped $\lambda$"/calculus
+$\beta$"/reduction as a rewrite rule is not strongly normalising~--- i.e. there are
+such things as non"/terminating computations or ``infinite loops''. Whereas
+for the simply typed $\lambda$"/calculus $\beta$"/reduction is strongly normalising;
 hence evaluation of any term would terminate in a finite number of steps. That is so
-because constructions which lead to non-termination, such as \textbf{Y}"/combinator,
-are not~\emph{well"/typed} in simply typed $\lambda$"/calculus.
+because constructions which lead to non"/termination, such as \textbf{Y}"/combinator,
+are not~\emph{well"/typed} in the simply typed $\lambda$"/calculus.
 
-Though the past years, a wide and deep research on typed lambda calculi was carried out,
-and then it found applications in theory of programming languages, especially in the
-functional programming. Both untyped (or~\emph{uni-typed}) and type functional programming
+Through the past years, a wide and deep research on typed lambda calculi was carried out,
+and then it found applications in the theory of programming languages and in
+functional programming. Both untyped (or~\emph{uni-typed}) and typed functional programming
 languages have a strong theoretical background and have always been a platform for
 researchers to explore applications of new ideas. In the late 1980s, typed functional programming
-started to receive a lot of attention and lots of ideas got implemented in experimental
-languages. One of the primary and most promising tracks was introduction of purely
-functional programming --- a style of building the structure and elements of computer
+started to receive a lot of attention and plenty of ideas got implemented in experimental
+languages. One of the primary and most promising tracks was the introduction of purely
+functional programming~--- a style of building the structure and elements of computer
 programmes, that treats all computation as the evaluation of mathematical functions. This
 approach extensively uses notions of~\emph{immutability} and~\emph{referential transparency}.
 
@@ -117,34 +119,33 @@ solid mathematical foundations for controlling side"/effects emerged.
 % and modularity of programmes in pure functional programming languages.
 
 Initially, purely"/functional programming languages with immutable data structures
-were required to explicitly track all changes to the data which were in operation.
+were required to explicitly track all changes to the data in operation.
 This was making programmes cumbersome and wordy. But then it was noted by
 Moggi~\cite{Moggi:1991:NCM:116981.116984} that most programmes dealing with
 state and other side"/effects follow the same pattern. He proposed to
-use~\emph{monads} --- a notion from category theory --- to structure side-effecting
+use~\emph{monads}~--- a notion from category theory~--- to structure side-effecting
 computations and factor the semantics via a new, generic, computational metalanguage that
-saves repeated work, modularizes, explains, cleans up reasoning by moving side"/conditions
+saves repeated work, modularises, explains, cleans up reasoning by moving side"/conditions
 into the type system.
 
 \begin{itemize}
-\item Separate values $A$ from computations $T A$, which may have observable
-behaviour other than producing a value of type $A$
-\item $T$ is an~\emph{endofunctor} $T:C \rightarrow C$, so can
-lift $f:A \rightarrow B$ to $T f:T A \rightarrow T B$, and this preserves
-identity and composition
-\item There’s a~\emph{natural transformation} with components
- $\eta_A : A \rightarrow T A$ which expresses how values may be
-(uniformly) viewed as trivial computations
-\item There’s a natural transformation $\mu_A : T (T A) \rightarrow T A$ that lets
-us (uniformly) combine effectful behaviours, so we can see a computation of
-a computation as a computation
-\item Satisfying monadic laws.
+  \item Separate values $A$ from computations $T A$, which may have observable
+  behaviour other than producing a value of type $A$.
+  \item Given a category $C$, $T$ is an~\emph{endofunctor} $T:C \rightarrow C$, so can
+  lift $f:A \rightarrow B$ to $T f:T A \rightarrow T B$, and this preserves
+  identity and composition.
+  \item There’s a~\emph{natural transformation} with components
+   $\eta_A : A \rightarrow T A$ which expresses how values may be
+  (uniformly) viewed as trivial computations.
+  \item There’s a natural transformation $\mu_A : T (T A) \rightarrow T A$ that lets
+  (uniformly) combine effectful behaviours, so computation of
+  a computation could be treated as a computation
+  \item Satisfying monadic laws.
 \end{itemize}
 
 Later, Wadler grasped~\cite{Wadler:1992:EFP:143165.143169} the Moggi's idea and
-implemented it in a purely-functional language Haskell. That was the first
-well"/known incorporations of monads into a
-programming language.
+implemented it in the purely"/functional language Haskell. That was the first
+well"/known incorporations of monads into a programming language.
 
     \begin{figure}[h]
     \begin{lstlisting}
@@ -169,8 +170,8 @@ m        >>= (\x -> k x >>= h)  =  (m >>= k) >>= h
     \end{figure}
 
 Monads were widely adopted by functional programming community and were used to
-refactor and unify such techniques like list comprehensions, purely"/functional
-exceptions and state"/treading. Many more monad instances were later discovered,
+refactor and unify such techniques as list comprehensions, purely"/functional
+exceptions and state"/threading. Many more monad instances were later discovered,
 including functional parsers~\cite{monParsing}, ways to control concurrency,
 logging and a lot of others. Moreover, it was discovered that monads are a convenient
 way to build domain"/specific languages (DSLs).
@@ -182,9 +183,9 @@ computations with several computational effects in a modular manner were demande
 
 The first attempt to formally approach the effects combination problem was made
 by Wadler and King~\cite{DBLP:conf/fp/KingW92} who investigated a possibility to
-combine monads with each other to yield a~\emph{combined monad} --- a one possessing
+combine monads with each other to yield a~\emph{combined monad}~--- a one possessing
 properties of two or more monads. Then, Liang at al.~\cite{Liang:1995:MTM:199448.199528}
-came up with a notion of~\emph{monad transformers} --- building blocks for construction
+came up with the notion of~\emph{monad transformers}~--- building blocks for construction
 of modular programming language interpreters. The major achievement of the paper
 is a way to specify effects interactions through~\emph{lifting} and changing
 semantics by reordering monads in~\emph{monad stacks}. Monad transformers were a
@@ -192,10 +193,10 @@ magnificent breakthrough. They strongly fortified in the Haskell community and w
 considered a state"/of"/the"/art technique for a long time.
 
 However, alternative approaches to the problem of the unstable denotational semantics
-of pure functional languages were investigated. Cartwright and Felleisen proposed
-a formalism named~\emph{extended direct semantics}~\cite{Cartwright1994} alongside
-with Moggi's monads. That formalism represents effects as a generalisation of exceptions:
-a computation may ``rise'' and effect, e.g. perform IO or mutate some kind of state, that
+of pure functional languages with effects were investigated. Cartwright and Felleisen proposed
+a formalism named~\emph{extended direct semantics}~\cite{Cartwright1994} almost at the same
+time with Moggi's monads. That formalism represents effects as a generalisation of exceptions:
+a computation may ``rise'' an effect, e.g. perform IO or mutate some kind of state, that
 must be later handled by a centralised~\emph{authority} (similar to exception handler).
 The idea of treating effects as exceptions was later studied more formally and the
 notions of~\emph{algebraic effects}~\cite{DBLP:journals/jlp/BauerP15} by Bauer and Pretnar
@@ -222,10 +223,10 @@ monad"/transformers stacks, for instance, monadic parser combinators library
 Parsec~\cite{parsec}.
 
 Despite the fact that monads are that popular in Haskell, there are implementations
-of alternative approaches. Kiselyov at al. presented~/emph{Extensible Effects} ---
-an approach alternative to monad transformers to construction computations with
+of alternative approaches. Kiselyov at al. presented~\emph{Extensible Effects}~---
+an approach alternative to monad transformers for construction computations with
 several effects. Extensible effects are a continuation of Cartwright and Felleisen
-work~\cite{Cartwright1994} and are based on a notion of~\emph{free monads} --- a
+work~\cite{Cartwright1994} but based on the mathematical concept of a~\emph{free monad}~--- a
 method to derive a monad from an arbitrary functor. Extensible effects also may be
 considered a Haskell embedding of algebraic effects and effects handlers. This thesis
 explores applications of extensible effects to the construction of parser combinators
@@ -236,19 +237,20 @@ system based on algebraic effects and effects handers. Idris is a strict
 dependently"/typed purely"/functional programming language, and its effect system
 heavily employs dependent types.
 
-Bauer and Pretnar who were standing at the origins of algebraic effects created
-and effect system for their ML"/like language Eff~\cite{DBLP:journals/corr/BauerP13}.
+Bauer and Pretnar created and effect system for their ML"/like language
+Eff~\cite{DBLP:journals/corr/BauerP13}. The Eff itself is build around the concepts
+of algebraic effects and effects handlers.
 
 One of the most recent implementations of algebraic effects and effects handlers
 is Frank programming language by Lindley at. al~\cite{DBLP:conf/popl/LindleyMM17}.
 Frank is an experimental language
 with native support for algebraic effects, it has special syntactic constructions
-to defined algebraic effects and their handlers, and is designed to make programming
+to define algebraic effects and their handlers, and is designed to make programming
 with algebraic effects natural. Frank is discussed in more detail in chapter
 ~\ref{cpt-alg-eff:frank} of this thesis, and its usage to implement parser
 combinators is explored.
 
-Some studies were carried out to compare the expressive power of these
+Some studies were delivered to compare the expressive power of these
 approaches~\cite{DBLP:journals/corr/ForsterKLP16}, which carried out the verdict
 that monad transformers may be converted into introduced~\emph{modular algebraic
 effects}: every~\emph{modular algebraic effect} gives rise to a monad transformer

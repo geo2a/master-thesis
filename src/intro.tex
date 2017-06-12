@@ -13,12 +13,12 @@ every single case, completely excluding any possibility of non"/specified behavi
 
 One class of formal verification techniques involve the advanced type systems of
 modern programming languages. Powerful yet lightweight formal verification
-provided by these languages are based on famous Curry"/Howard correspondence ---
+provided by these languages are based on famous Curry"/Howard correspondence~---
 a direct relationship between computer programs and mathematical
-proofs --- that was discovered by the American mathematician Haskell Curry and logician
-William Alvin Howard in late 1960s. A perfectly written Philip Wadler’s paper
+proofs~--- that was discovered by the American mathematician Haskell Curry and logician
+William Alvin Howard in late 1960s. The famous Philip Wadler’s paper
 ``Propositions as Types''~\cite{Wadler:2015:PT:2847579.2699407}
-contains a great set of historical notes alongside with points of view on
+gives a historical perspective alongside with points of view on
 Curry"/Howard correspondence from different fields of
 mathematics and computer science. Curry"/Howard correspondence is of great value
 for software developers because it provides a possibility to formulate desired
@@ -26,18 +26,23 @@ properties of programs in terms of types and automatically check
 the correctness of those programs through type checking.
 
 Advances in type theory and theory of programming languages led to the development
-and spreading of effects systems --- a particular kind of type"/guided verification
+and spreading of effects systems~--- a particular kind of type"/guided verification
 providing a possibility to separate pure computations from ones flavoured with
 a computational side effect, like, for instance, file system IO. These techniques
 was first given an account by Moggi~\cite{Moggi:1991:NCM:116981.116984} who
-used monads to provide a denotational semantics to lambda calculus with effects, and then Wadler~\cite{Wadler:1992:EFP:143165.143169} gave monads a practical instantiation in Haskell programming language.
+used monads to provide a denotational semantics to the $\lambda$"/calculus with effects,
+and then Wadler~\cite{Wadler:1992:EFP:143165.143169} gave monads a practical instantiation in
+Haskell programming language.
 
-Computational effects control techniques got plenty of attention both in academic and software engineering communities. As applications, such as, for example, parser combinators~\cite{monParsing} were explored, a lot more requirements and demands
+Computational effects control techniques got plenty of attention both in academic and
+software engineering communities. As applications, such as, for example, parser
+combinators~\cite{monParsing}, were explored, a lot more requirements and demands
 were introduced: combine effects in a modular way and provide finer"/grained control
-for effects. This led to development of both monadic~\cite{Liang:1995:MTM:199448.199528} and alternative approaches~\cite{Mcbride:2008:APE:1348940.1348941}
+for effects. This led to development of both monadic~\cite{Liang:1995:MTM:199448.199528} and
+alternative approaches~\cite{Mcbride:2008:APE:1348940.1348941}
 ~\cite{DBLP:journals/jlp/BauerP15}.
 
-This work aims to application of programming languages' features supporting explicit
+This work aims to application of programming languages features supporting explicit
 and precise control of computational effects. It addresses the problem
 of construction of parser combinators libraries and full"/scale web applications
 using three approaches to effectful programming:
@@ -45,10 +50,9 @@ using three approaches to effectful programming:
 \begin{itemize}
   \item Monad transformers~\cite{Liang:1995:MTM:199448.199528} in Haskell.
   \item Algebraic effects and effects handlers~\cite{DBLP:journals/jlp/BauerP15}
-  in a form of extensible.
-  effects~\cite{Kiselyov:2013:EEA:2578854.2503791} in Haskell
-  \item~\texttt{Frank}~\cite{DBLP:conf/popl/LindleyMM17} programming language featuring first-class support of algebraic
-  effects and effects handlers.
+  in a form of extensible effects~\cite{Kiselyov:2013:EEA:2578854.2503791} in Haskell
+  \item~ The Frank~\cite{DBLP:conf/popl/LindleyMM17} programming language featuring
+  first"/class support of algebraic effects and effects handlers.
 \end{itemize}
 
 Main results of this work were presented in international and local conferences.
@@ -58,31 +62,33 @@ in Moscow. The material on construction of parsers in Frank was presented in the
 conference ``Programming languages and compilers 2017'' in Rostov-on-Don~\cite{plcFrank}.
 
 This thesis is structured as follows: the first chapter gives a historical retrospective
-of research on computational effects; the second chapter and third chapters describe the
-approaches to structuring of effects on programming languages and present announced parser combinators libraries; the forth chapter demonstrates the usage of functional programming
-and computational effects control on a case"/study --- the development of full-fledged
+of research on computational effects; the second and third chapters describe the
+approaches to structuring of effects on programming languages and present announced parser combinators libraries; the fourth chapter demonstrates the usage of functional programming
+and computational effects control on a case"/study~--- the development of full-fledged
 Haskell web application.
 
 \Goal
 
 The goal of this work is to study the applications of approaches to structuring
-of computational effects to real"/world software development. The gives an analysis
-of monadic and algebraic effects and handlers frameworks by presenting a solution
-to a standard model problem: building a parser combinators library. The work
+of computational effects to real"/world software development. The thesis explores
+the monadic and algebraic effects and handlers frameworks by solving a
+standard model problem: building a parser combinators library. The work
 include a comparison of these approaches in terms of expressiveness and, for some of them,
-performance and makes observations about their applicability.
+performance, and makes observations about their applicability.
 
-This thesis addresses the stated goal by breaking it into the following tasks:
+This thesis addresses the stated goals by breaking by solving the following tasks:
 
 \begin{itemize}
   \item Develop a monadic parser combinators library to illustrate the usage of
   monad transformers in Haskell.
-  \item Develop a parser combinators library on top of extensible effects --- an embedding of
+  \item Develop a parser combinators library on top of extensible effects~--- an embedding of
   algebraic effects into Haskell.
   \item Highlight the differences between monad transformers and extensible effects.
   \item Use Frank programming language
-  featuring first"/class support of algebraic effects and effects handlers to develop
-  a prototype of parser combinators library and report the experience.
+  featuring first"/class support of algebraic effects and effects handlers to
+  analyse the approaches to parsing libraries' construction and report the experience.
+  \item Benchmark the performance of the developed libraries and compare it to
+  a one of existing solutions.
   \item Demonstrate the usage of the typed functional programming language with an
   effect system at scale: develop a full"/featured effect"/structured web application
   with Haskell.

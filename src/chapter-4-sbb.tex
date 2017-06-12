@@ -4,12 +4,12 @@
 This chapter presents and discusses ``Student's Big Brother'' --- a distributed
 system to support study workflow in a programming class. It was designed to help
 teachers to distribute their attention to all students uniformly. The system consists
-of client daemons, watching students activity and sending their source code to a server (over HTTP),
-for storage, processing and displaying in teacher web"/interface.
+of client daemons, watching students activity and sending their source code to a server
+in real"/time (over HTTP), for storage, processing and displaying in teacher web"/interface.
 The source code is freely available on GitHub~\cite{sbbRepo}.
 
 The system is mostly implemented using Haskell programming language and the implementation
-extensively uses monad transformers and algebraic effects --- the concepts discussed previously
+extensively uses monad transformers and extensible effects --- the concepts discussed previously
 in this thesis --- to structure the necessary side"/effects and separate the effectful
 functionality from the pure code.
 
@@ -26,8 +26,9 @@ programming practice sessions. Usually, the instructing teacher is fighting
 students' shyness by walking around the room, observing students and trying to
 determine whether the particular student is succeeding or not. But due to the
 limited time of the sessions and the fact that there is only one instructor per
-10"/15 students, the described procedure is quite inefficient. To approach the
-problem, we propose to build a monitoring system for students activities during
+10"/15 students, the described procedure is quite inefficient. Besides, teacher's
+status checks may interrupt the string students who don't need the support. To approach the
+problem, we propose to build a real"/time monitoring system of students activities during
 programming classes. This system should have features of basic
 version control and of displaying the students' source code in a lightweight
 web"/interface for the instructor to be able to observe the activity of every
@@ -78,7 +79,7 @@ and employ Haskell's type system to enforce safety and correctness of operation
 and communication. The teacher's web application is built with standard web stack:
 HTML, CSS and JavaScript.
 
-\subsection{Servant: type safety as a service}
+\subsection{Servant: type safety as a service with typelevel APIs and monad transformers}
 
 Advanced Type systems provide the facilities for~\emph{lightweight verification}
 of the programs: static type checking may help to find a lot of errors at compile
@@ -87,7 +88,9 @@ time and hold them from leaking out into run time.
 Servant~\cite{Mestanogullari:2015:TWA:2808098.2808099} is a Haskell web"/framework built
 around a type"/level DSL for HTTP APIs description. The main idea is to represent
 APIs by Haskell types thus making APIs~\emph{first"/class} entities. This approach
-gives a huge boost to ensuring the correctness of API endpoints handlers by statically
+gives a huge boost to ensuring the correctness of API endpoints handlers
+\footnote{Note that the notion of API handler is orthogonal to effects handlers
+from the previous chapter} by statically
 checking their conformance to the desired API and consistency with each other.
 Besides ensuring the correctness of handlers, first"/class API types provide
 means to automatically generate both documentation and client libraries (in Haskell,
@@ -144,7 +147,7 @@ Haskell"/extensions such as~\lstinline{DataKinds} (for type"/level constants),
 ~\lstinline{TypeOperators} and others to make the API types seem very similar to handlers
 that implement them.
 
-Consider the handler for the discussed API (listing~\ref{sbbDaemonHandler}).
+Consider the handler for the discussed API (listing~\ref{listing:sbbDaemonHandler}).
 The~\lstinline{(:<|>)} now appear on term"/level and serve to combine handlers instead of
 APIs. The handlers are regular Haskell monadic computations making
 use of~\emph{monad transformers} to structure their~\emph{side"/effects}:
@@ -182,19 +185,21 @@ client code inspires for an introduction of even tighter type"/channelled connec
 the domain types may be factored out into separate Haskell module and reused for
 both client and server thus making it impossible for them to diverge.
 
-In the implementation of the developed system, this is done to mentioned earlier ``SourceFile''
-type thus making it's path be like the following. Firstly, the source code files read from the
-student's computer, packed into the ``SourceFile'' type, encoded to JSON and sent to the daemon
+In the implementation of the developed system, this is done to mentioned
+earlier~\lstinline{SourceFile} type thus making it's path be like the following.
+Firstly, the source code files read from the student's computer, packed into
+the~\lstinline{SourceFile} type, encoded to JSON and sent to the daemon
 over the network. Then the files got received by the server, and deserialized from JSON into the
-same ``SourceFile'' type! Moreover, the JSON serialisation and deserialization procedures are
-generated mechanically for the``SourceFile'' using the GHC's support for datatype"/generic
+same~\lstinline{SourceFile} type. Moreover, the JSON serialisation and
+deserialization procedures are generated mechanically for the~\lstinline{SourceFile}
+using the GHC's support for datatype"/generic
 programming thus no errors could occur due to a human mistake in the implementation of these
 procedures.
 
-\subsection{Extensible effects at daemon's service}
+\subsection{Extensible effects at the daemon's service}
 
 Servant is built with extensive usage of monad transformers thus making it
-unnatural to use different side"/effect control techniques with it. Nevertheless,
+unnatural to use a different side"/effect control techniques with it. Nevertheless,
 the client code is not doomed to the usage of monad transformers; thus it was decided
 to use extensible effects to structures the side effects of daemon's implementation.
 
@@ -259,9 +264,10 @@ repository~\cite{sbbRepo}.
 
 \section{Exploitation experience report}
 
-The experiment of integration of the developed system into the teaching workflow
-of an undergraduate programming course in I.~I.~Vorovich institute of mathematics,
-mechanics and computer science was successful. A teacher who has been leading the
+We have a successful experience of ``Student's Big Brother'' integration into
+the teaching workflow. The system was used in an undergraduate programming course
+at I.~I.~Vorovich institute of mathematics, mechanics and computer
+science~\cite{fiit}. A teacher who has been leading the
 class reported the system to be reliable and the user experience to be satisfying.
 It was also reported that students had been showing more effort to complete the
 tasks and their hesitation for asking questions have been significantly reduced.

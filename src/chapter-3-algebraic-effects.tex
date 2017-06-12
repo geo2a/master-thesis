@@ -12,22 +12,20 @@
   This section describes a prototype implementation of parser
   combinators library in experimental programming language
   Frank~\cite{DBLP:conf/popl/LindleyMM17} which has first-class support for
-  algebraic effects and effects handlers. Parsers may be represented either by
+  algebraic effects and effects handlers. We explore how parsers may be represented either by
   combination of multiple effects, for instance, mutable state and possible failure,
-  or may be expressed as a monolith effect signature. In conclusion, we make a
+  or a monolithic effect signature. In conclusion, we make a
   note on expressive power of Frank's implementation of algebraic effects and
   handlers.
 
   \subsection{Building parsers as a combination of effects}
 
-    Section~\ref{cpt-effects:alg-effects} gives an account on algebraic effects and
-    effects handlers and, in particular, on programming with these concepts in Frank
-    programming language. This section employs Frank to build a prototype of parser
+    This section employs Frank to build a prototype of parser
     combinators library.
 
     \subsubsection{Defining parser combinators}
 
-    As is has been already said, simple parser could be expressed as a computation
+    As noted in~\cite{monParsing} simple parser could be expressed as a computation
     with two effects: state of input stream and a possibility of failure. Thus,
     handling parsing means handling a combination of those two effects, that is done
     by composing handlers for failure and state (see
@@ -78,7 +76,7 @@ sat p = on item! {c -> if (p c) {c} {fail}}
     Having these basic building blocks, we are already able to construct
     practical parsers. A useful application of~\texttt{sat} is
     the~\texttt{char} parser that accepts a given character from the input
-    stream (listing~\ref{parserCharCombo}).
+    stream (listing~\ref{listing:parserCharCombo}).
 
     \begin{figure}[h]
     \begin{lstlisting}
@@ -91,10 +89,9 @@ char c = sat {x -> eqChar x c}
 
     Besides accepting specific characters,~\texttt{sat} parser could be used
     to implement other basic parsers. For instance, if predicate
-    ~\texttt{isLetter} determining weather of not given character is Latin letter is defined, we could supply it to~\texttt{sat} and acquire a parser for letters (listing~\ref{listing:parserLetterCombo}). The same could be done for decimal
-    (or other) digits.
+    ~\texttt{isLetter} determining weather of not given character is Latin letter is defined, we could supply it to~\texttt{sat} and acquire a parser for letters (listing~\ref{listing:parserLetterCombo}). The same could be done for decimal digits.
 
-    \begin{figure}[h]`
+    \begin{figure}[h]
     \begin{lstlisting}
 letter : [Error, State (List Char)]Char
 letter! = sat isLetter
@@ -123,8 +120,8 @@ string str = map char str
     \label{listing:parserStrCombo}
     \end{figure}
 
-    But individual chars and known-in-advance strings are not that interesting. Therefore, turn comes to actually building actual combinators: alternative
-    and repetition.
+    But individual chars and known"/in"/advance strings are not that interesting.
+    Therefoerm we implement the combinators for alternatives and repetition.
 
     Consider the case we have to parsers $p_1$ and $p_2$, and we would like to
     construct a parser that accepts all inputs that are recognisable by both
@@ -373,7 +370,7 @@ right (Document ([Header 1 (NonEmpty (["ToDo", "list"])),
   \subsection{Parsers as a standalone effect}
 
     The minimal parser combinators interface could be described with a monolithic
-    algebraic effect. It could bring parsers a usual a benefit of algebraic effects
+    algebraic effect. It could bring parsers the usual benefit of algebraic effects
     and effects handlers approach: independence of effect's commands and their interpretation.
     This was proved to be useful by Lindley~\cite{Lindley:2014:AEE:2633628.2633636}
     for parsers: a single set of parsing commands could be given different interpretations
@@ -397,50 +394,15 @@ interface Parser =
 
     However, we came into a restriction of Frank's
     effects system, which makes it impossible to express the parser's signature
-    as desired due to impossibility to construct effect interfaces incorporation
-    generalised algebraic data types. That is, every command of the interface must
+    as desired due to impossibility to construct effect interfaces incorporating
+    commands returning values of different types. That is, every command of the interface must
     return a value of the same (maybe polymorphic) type, making an interface from
     listing~\ref{listing:parserEffMono} impossible to express.
-
-   \subsection{Discussion}
-
-    Frank provides convenient and expressive features for programming with
-    algebraic effects and handlers. Frank's native support for computations with
-    multiple effects doesn't require programmes to deal with much of boilerplate.
-    When the collection of effects of the computation is determined, there is nothing
-    more holding the programmer from doing his job: no need to wrap one's head around
-    complex types like monad transformers stacks and static effects ordering.
-    In addition, direct applicative style of defining effectful computations often
-    leaves in unnecessary to give names to interim results, thus making code
-    easier to follow.
-
-    Representing parser as a computation combining several side effects is a
-    triumph of modularity. Nevertheless, it somehow abuses one of the most important
-    points about algebraic effects and effect handlers: the independence of
-    syntax and semantics. Of course, parsing is perfectly representable by the
-    combination of several algebraic effects, but it might also be interesting
-    and useful to represent it as a separate effect signature to be able to assign
-    different interpretations to the same parser's syntax.
-
-    Unfortunately, the current state of Frank's effect system doesn't provide a way
-    to express effect interfaces required for building full-featured parser combinators
-    as a monolithic effect. The system could be refined by introducing a possibility
-    to incorporate GADTs into effect signatures.
-
-    Because Frank is in its infancy, it lacks some useful language features that
-    are habitual from more mature functional languages. For example, there is no
-    way to declare type synonyms; hence the
-    effect list must be included in type signature of every parser combinator, making
-    source code a bit more verbose than in could be.
-
-    Nevertheless, Frank is powerful is a very interesting research project, a
-    proof-of-concept language that allows prototyping type-safe DSLs with precise
-    control of side-effects.
 
     \section{Extensible Effects: algebraic effects embedded in Haskell}
     \label{cpt-alg-eff:ext-effects}
 
-    Paper~\cite{Kiselyov:2013:EEA:2578854.2503791} present extensible effects ---
+    Paper~\cite{Kiselyov:2013:EEA:2578854.2503791} presents extensible effects ---
     an alternative to monad transformers
     approach to typing computations with several interacting side effects.
 
@@ -453,8 +415,8 @@ interface Parser =
 
     In early variants of libraries similar to extensible effects, an authority that manages
     requests was a separate concept, like an operating system kernel, or IO-actions
-    handler of GHC runtime. This manager possessed all the system resources (files,
-    memory, etc.): it has been considering every request and making a decision if it should be
+    handler of GHC runtime. This manager possesses all the system resources (files,
+    memory, etc.): it considers every request and makes a decision if it should be
     fulfilled or rejected. This external effect interpreter had a great power, but lacked
     flexibility.
 
@@ -468,17 +430,17 @@ interface Parser =
     itself, which are going to be taken care of by some other handler.
 
     \item Effect typing system that tracks a type-level collection of effects active for every
-    computation. For collection here stands a notion of \texttt{Open Union} --- a type-indexed
+    computation. This collection is an open union --- a type-indexed
     coproduct of functors. An application of every handler affects the type:
     handled effect is excluded from collection. Therefore, it could be statically
     checked that all effects are handled.
 
     \item Extensible effects exploits a notion of free monad to build effectful DSLs. An
     instance of \texttt{Monad} type class provides programmer with set of familiar
-    \texttt{Haskell} techniques such as \texttt{do}-notation and applicative programming.
+    Haskell techniques such as \texttt{do}-notation and applicative programming.
     \end{itemize}
 
-    One of huge advantages of extensible effects in comparison to monad transformers is the
+    One of the advantages of extensible effects in comparison to monad transformers is the
     absence of need in boilerplate type class instance declaration to perform lifting. And
     there is more: extensible effects permit computations with several similar effects without
     losing a possibility of automatic lifting. Consider an example of function with two readable
@@ -520,7 +482,7 @@ runCountdown2 n = run $ runState (n :: Int) $ runFail $ countdown
     \label{listing:ExtEffCountdown}
     \end{figure}
 
-    The rest of the section is dedicated a canonical example of effectful computation:
+    The rest of the section is dedicated to the canonical example of effectful computation:
     parser combinators. We use extensible effects to build a prototype of a parser combinators
     library and then give a small account to performance benchmarking.
     We do not give the complete implementation here, because it's API is fairly
@@ -649,44 +611,56 @@ parse p inp = run . runState inp . runFail $ p
 parse' :: Eff (State s :> (Fail :> Void)) w -> s -> Maybe (s, w)
 parse' p inp = run . runFail . runState inp $ p
       \end{lstlisting}
-      \caption{Handle}
+      \caption{The parsing effects handler}
       \label{listing:ExtEffParsersParse}
       \end{figure}
 
-      \subsection{Performance benchmark}
+\section{Conclusion}
 
-      Here are the result of performance benchmarks of the developed parser
-      combinators library. Benchmarks were done using the Haskell Criterion
-      library~\cite{criterion}.
+The Frank programming language provides convenient and expressive features for programming with
+algebraic effects and handlers. Frank's native support for computations with
+multiple effects doesn't require programmes to deal with much of boilerplate.
+When the collection of effects of the computation is determined, there is nothing
+more holding the programmer from doing his job: no need to wrap one's head around
+complex types like monad transformers stacks and static effects ordering.
+In addition, direct applicative style of defining effectful computations often
+leaves it unnecessary to give names to intermediate results, thus making code
+easier to follow.
 
-      \begin{tabular}{|| c c c||}
-        \hline
-                      & Estimate & Confidence interval\\
-        \hline\hline
-        Mean time     & 7.53 ms  & [7.44 ms, 7.66 ms] \\
-        $\sigma$      & 289 $\mu$s   & [194 $\mu$s, 436 $\mu$s] \\
-        \hline
-      \end{tabular}
+Representing parser as a computation combining several side effects is a
+triumph of modularity. Nevertheless, it somehow abuses one of the most important
+points about algebraic effects and effect handlers: the independence of
+syntax and semantics. Of course, parsing is perfectly representable by the
+combination of several algebraic effects, but it might also be interesting
+and useful to represent it as a separate effect signature to be able to assign
+different interpretations to the same parser's syntax.
 
-      \begin{figure}[h]
-      \includegraphics[scale=0.4]{images/freer.png}
-      \caption{Monad transformers parsers benchmark}
-      \label{mtlParserBench}
-      \end{figure}
+Unfortunately, the current state of Frank's effect system doesn't provide a way
+to express effect interfaces required for building full-featured parser combinators
+as a monolithic effect. The system could be refined by introducing a possibility
+to incorporate GADT"/like syntax into effect signatures.
 
-      The benchmarking was performed for a parser of a Markdown"/like language
-      implemented using this library. The benchmarked action was parsing of a
-      file of size about 3 kilobytes. The benchmark, together with the source code
-      of the library and the parser may be found in the library's GitHub
-      repository~\cite{extEffParsers}.
+Because Frank is in its infancy, it lacks some useful language features that
+are habitual from more mature functional languages. For example, there is no
+way to declare type synonyms; hence the
+effect list must be included in type signature of every parser combinator, making
+source code a bit more verbose than in could be.
 
-      This benchmark shows extensible effects to work slower in comparison to the monad transformers based implementation (see chapter~\ref{cpt-monads:parsers-bench}).
+Nevertheless, Frank is powerful is a very interesting research project, a
+proof-of-concept language that allows prototyping type-safe DSLs with precise
+control of side-effects.
 
-      \subsection{Conclusion}
+Extensible effects are an embedding of algebraic effects and handlers in Haskell,
+thus the sketched parser combinators library has a lot in common with the one
+implemented in Frank (see section~\ref{cpt-alg-eff:frank}). However, as far as Extensible
+Effects are implemented on top of free monads, programmer must adopt the monadic
+style for definition of effectful computations and parsers implementation
+become a bit more wordy than in Frank. But from the other side, free monads let
+to Haskell programmers to keep the useful syntactic sugar of do"/notation and
+thus reuse a lot of the monadic code with minimal corrections.
 
-      Extensible effects are an embedding of algebraic effects and handlers in Haskell,
-      thus the sketched parser combinators library has a lot in common with the one
-      implemented in Frank (see previous section). However, as far as Extensible
-      Effects are implemented on top of free monads, programmer must adopt the monadic
-      style for definition of effectful computations and parsers implementation
-      become a bit more wordy than in Frank.
+Algebraic effects and handlers provide and alternative to monads approach to structuring
+of effectful computations. It still is not mature enough but the has received a lot of
+attention lately and was proven to have the same
+expressive power~\cite{DBLP:journals/corr/ForsterKLP16} while requiring less
+boilerplate in some cases.

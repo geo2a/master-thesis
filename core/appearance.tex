@@ -100,6 +100,17 @@
 \addtolength{\cftchapnumwidth}{\widthof{Chapter }}
 }
 
+\newcommand{\setupname}[1]{%
+  \addtocontents{toc}{%
+    \unexpanded{\unexpanded{%
+      \renewcommand{\cftchappresnum}{#1 }%
+      \setlength\cftchapnumwidth{\widthof{\bfseries #1 }}%
+      \addtolength\cftchapnumwidth{\fixedchapnumwidth}%
+    }}%
+  }%
+}
+\AtBeginDocument{\edef\fixedchapnumwidth{\the\cftchapnumwidth}}
+
 % Очищаем оформление названий старших элементов в оглавлении
 \ifthenelse{\value{worktype} > 1}{%
 \renewcommand{\cftchapfont}{}

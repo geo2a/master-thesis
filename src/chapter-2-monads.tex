@@ -254,35 +254,6 @@ parse (Parser p) s =
       \label{listing:mtlParserParse}
       \end{figure}
 
-      \subsection{Performance benchmark}
-      \label{cpt-monads:parsers-bench}
-
-      Here are the result of performance benchmarks of the developed parser
-      combinators library. Benchmarks were done using the Haskell Criterion
-      library~\cite{criterion}.
-
-      \begin{tabular}{|| c c c||}
-        \hline
-                      & Estimate & Confidence interval\\
-        \hline\hline
-        Mean time     & 121 $\mu$s   & [119 $\mu$s, 126 $\mu$s] \\
-        $\sigma$      & 10.0 $\mu$s  & [20.2 $\mu$s, 3.84 $\mu$s] \\
-        \hline
-      \end{tabular}
-
-      \begin{figure}[h]
-      \includegraphics[scale=0.4]{images/monad-trans.png}
-      \caption{Monad transformers parsers benchmark}
-      \label{mtlParserBench}
-      \end{figure}
-
-      The benchmarking was performed for a parser of a Markdown"/like language
-      implemented using this library. The benchmarked action was parsing of a
-      file of size about 3 kilobytes. The benchmark, together with the source code
-      of the library and the parser may be found in the library's GitHub
-      repository~\cite{mdParse}.
-
-
     \section{Conclusion}
 
     Overall, a concept of monad transformers has a considerable convenience in programming due to
