@@ -1,8 +1,8 @@
-.PHONY: main.pdf all clean
+.PHONY: thesis.pdf all clean
 
 # The first rule in a Makefile is the one executed by default ("make"). It
 # should always be the "all" rule, so that "make" and "make all" are identical.
-all: main.pdf annotation.pdf
+all: thesis.pdf
 
 # MAIN LATEXMK RULE
 
@@ -13,11 +13,9 @@ all: main.pdf annotation.pdf
 # -interactive=nonstopmode keeps the pdflatex backend from stopping at a
 # missing file reference and interactively asking you for an alternative.
 
-main.pdf: main.tex
-	latexmk -pdf -pdflatex="pdflatex -interactive=nonstopmode" -use-make main.tex
+thesis.pdf: thesis.tex
+	latexmk -pdf -pdflatex="pdflatex -interactive=nonstopmode" -use-make thesis.tex
 
-annotation.pdf: annotation.tex
-	latexmk -pdf -pdflatex="pdflatex -interactive=nonstopmode" -use-make annotation.tex
 clean:
 	latexmk -CA
 
