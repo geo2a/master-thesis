@@ -13,7 +13,7 @@
   foreground,
   contents={%
     \raisebox{\dp\strutbox}[\layerheight][0pt]{%
-      \parbox[b]{\layerwidth}{\centering Ростов-на-Дону\\ \thedate%
+      \parbox[b]{\layerwidth}{\centering Rostov-on-Don\\ \thedate%
        \\\mbox{}
        }}%
   }
@@ -30,18 +30,18 @@
 
     {\centering
     %
-    \MakeTextUppercase {МИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ РФ}
+    \MakeTextUppercase {MINISTRY OF EDUCATION AND SCIENCE OF THE RUSSIAN FEDERATION}
 
     \vgap
 
-    Федеральное государственное автономное образовательное\\
-    учреждение высшего образования\\
-    \MakeTextUppercase {Южный федеральный университет}
+    Federal state autonomous higher educational institution\\
+    % Федеральное государственное автономное образовательное\\
+    % учреждение высшего образования\\
+    \MakeTextUppercase {Southern Federal University}
 
     \vgap
 
-	Институт математики, механики и компьютерных наук
-    имени~И.\,И.\,Воровича
+    I.\,I.\,Vorovich Institute of Mathematics, Physics \& Computer Science
 
     \vgap
 
@@ -65,7 +65,7 @@
     \ifthenelse{\value{worktype} = 2}{%
      \vgap
 
-    Магистерская диссертация}{}
+    Thesis submitted for the degree of\\\textbf{MSc in Computer Science}}{}
     \ifthenelse{\value{worktype} = 0}{
      \vgap
 
@@ -90,12 +90,12 @@
 
     \vgap
 
-    Научный руководитель:\\
-    к.т.н., с.н.с., доц. каф. ИВЭ
-    А.~Н.~Литвиненко\\
+    Supervisor:\\
+    Assistant professor Artem\,Pelenitsyn\\
     \ifthenelse{\value{worktype} = 2}{%
-    Рецензент:\\
-    к.ф.-м.н., доц., доц. каф. АДМ С.~С.~Михалкович}{}
+    % Рецензент:\\
+    % к.ф.-м.н., доц., доц. каф. АДМ С.~С.~Михалкович
+    }{}
 	\end{flushright}
     \ifthenelse{\value{worktype} = 0}{
     \vspace{\fill}
