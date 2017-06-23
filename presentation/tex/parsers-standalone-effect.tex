@@ -1,0 +1,91 @@
+\subsection{Парсер как монолитный эффект}
+
+\begin{frame}[fragile]{}
+\begin{block}{Интерфейс эффекта}
+\begin{minted}{haskell}
+interface Parser X Y =
+    fail : Y
+  | sat : {Char -> Bool} -> Char
+  | choose : {[Parser X Y] Y} -> {[Parser X Y] Y} -> Y
+  | many : {[Parser X Y] Y} -> List Y
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{}
+\begin{block}{Обработчик эффекта}
+\begin{minted}{haskell}
+runParser : (List Char) -> <Parser X Y>Y ->
+            Pair (Maybe Y) (List Char)
+runParser xs r = pair (just r) xs
+runParser xs <fail -> _> = pair nothing xs
+runParser nil <sat p -> k> = pair nothing nil
+runParser (x::xs) <sat p -> k> =
+  if (p x) {runParser xs (k x)} {pair nothing (x::xs)}
+runParser xs <choose p1 p2 -> k> =
+  on (runParser xs p1!)
+    { (pair (just _) _) -> runParser xs p1!
+    | (pair nothing _) -> on (runParser xs p2!)
+      { (pair (just _) _) -> runParser xs p2!
+      | (pair nothing _) -> pair nothing xs
+      }
+    }
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{}
+\begin{block}{Обработчик эффекта (продолжение)}
+\begin{minted}{haskell}
+runParser : (List Char) -> <Parser X Y>Y ->
+            Pair (Maybe Y) (List Char)
+runParser xs <many p -> k> =
+  on (runParser xs p!)
+      { (pair (just ok) rest) ->
+          cons (pair (just ok) nil)
+               (runParser rest (many p; k nil))
+      | (pair nothing rest) -> runParser xs (k nil)
+      }
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Проблема гомогенности}
+\begin{block}{}
+\begin{minted}{haskell}
+runParser : (List Char) -> <Parser X Y>Y ->
+            Pair (Maybe Y) (List Char)
+\end{minted}
+\end{block}
+\pause
+\begin{block}{}
+% \begin{minted}{haskell}
+$<Parser~Char~Char> \neq <Parser~Char~(List~Char)>$
+% \end{minted}
+\end{block}
+\pause
+\begin{block}{Гетерогенный список с помощью экзистенциального типа (\texttt{Haskell})}
+\begin{minted}{haskell}
+data Obj = forall a. (Show a) => Obj a
+
+xs :: [Obj]
+xs = [Obj 1, Obj "foo", Obj 'c']
+\end{minted}
+\end{block}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{}
+\begin{block}{Интерфейс эффекта}
+\begin{minted}{haskell}
+interface Parser =
+    fail : forall Y . Y
+  | sat : {Char -> Bool} -> Char
+  | choose : forall Y . {[Parser] Y} -> {[Parser] Y} -> Y
+  | many : forall Y . {[Parser] Y} -> List Y
+\end{minted}
+\end{block}
+\end{frame}
+
+% ∀

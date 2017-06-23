@@ -1,0 +1,231 @@
+\input{preamble.tex}
+
+\usepackage[cache=false]{minted}
+\usepackage{pgf}
+\usepackage{tikz}
+
+\title[Структурирование вычислений с эффектами]{Структурирование вычислений с эффектами}
+
+\subtitle{}
+
+% \author[Георгий Лукьянов]{%
+% Георгий Лукьянов\texorpdfstring{\\}{ }
+% georgiy.lukjanov@gmail.com}
+
+% \author[]{%
+% Георгий Лукьянов\texorpdfstring{\\}{ }
+% \textit{georgiy.lukjanov@gmail.com}\texorpdfstring{\\}{ }
+% Артём Пеленицын \texorpdfstring{\\}{ }
+% \textit{apel@sfedu.ru}
+% }
+
+
+\author[Г.\,А.\,Лукьянов]
+{%
+  % \texorpdfstring{
+  %   \begin{columns}
+  %     % \column{.45\linewidth}
+  %     % \centering
+  %     % John Doe\          \href{mailto:john@example.com}{john@example.com}
+  %     % \column{.45\linewidth}
+  %     % \centering
+  %     % Jane Doe\          \href{mailto:jane.doe@example.com}{jane.doe@example.com}
+  %     \column{.45\linewidth}
+  %     \centering
+  %     Георгий Лукьянов\\ \scriptsize{\textit{georgiy.lukjanov@gmail.com}}
+  %     \column{.45\linewidth}
+  %     \centering
+  %     Артём Пеленицын\\ \scriptsize{\textit{apel@sfedu.ru}}
+  %   \end{columns}
+  % }
+  {Г.\,А.\,Лукьянов \\
+  \scriptsize{\emph{Научный руководитель}: к.т.н., с.н.с, доц.каф. ИВЭ А.\,Н.\,Литвиненко}}
+}
+
+\date{21 Июня 2017}%
+
+\institute[]{%
+Южный Федеральный Университет \texorpdfstring{\\}{ }
+Институт математики, механики и компьютерных наук имени~И.\,И.\,Воровича\texorpdfstring{\\}{ }
+}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%  Intro  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[fragile]{Постановка задачи}
+\begin{block}{Цель}
+\emph{Сравнительный анализ} трёх реализаций \emph{систем контроля вычислительных эффектов}: преобразователи монад в Haskell, расширяемые эффекты в Haskell, алгебраические эффекты во Frank.
+\end{block}
+\begin{block}{Задачи}
+\begin{enumerate}
+\item \emph{Реализация парсер-комбинаторных библиотек} с использованием трёх
+      систем контроля эффектов.
+\item \emph{Сравнение производительности} и~\emph{определение качественных отличий} полученных
+      реализаций парсер-комбинаторных библиотек.
+\item \emph{Дизайн и реализация клиент-серверного приложения} для учёта студенческой
+      активности с использованием различных подходов к контролю над эффектами.
+\end{enumerate}
+\end{block}
+\end{frame}
+
+\section{Контроль вычислительных эффектов}
+
+\begin{frame}[fragile]{Вычислительные эффекты}
+  \begin{block}{Функция с побочным эффектом в языке без системы эффектов}
+  \begin{minted}{csharp}
+int plus(int x, int y) {
+  print("Неструктурированный побочный эффект.");
+  return x + y;
+}
+  \end{minted}
+  \end{block}
+  \begin{block}{Чистая функция в Haskell}
+  \begin{minted}{haskell}
+plus :: Int -> Int -> Int
+plut x y = x + y
+  \end{minted}
+  \end{block}
+  \begin{block}{Функция с побочным эффектом в Haskell}
+  \begin{minted}{haskell}
+plusIO :: Int -> Int -> IO Int
+plutIO x y = do
+  print "Структурированный побочный эффект."
+  return (x + y)
+  \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Подходы к структурированию эффектов и их реализации}
+
+\begin{columns}
+\begin{column}{0.49\textwidth}
+  \begin{block}{Монадический подход}
+    \begin{itemize}
+      \item Монады и преобразователи монад в Haskell
+    \end{itemize}
+    \vspace{0.01em}
+  \end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+  \begin{block}{Алгебраические эффекты}
+    \begin{itemize}
+      \item Расширяемые эффекты в Haskell
+      \item Язык программирования Frank
+    \end{itemize}
+  \end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{Комбинаторы парсеров: модельная задача структурирования эффектов}
+
+\begin{frame}[fragile]{Структура эффектов парсера}
+\begin{itemize}
+  \item Изменяемое состояние входного потока
+  \item Потенциальная невозможность или неоднозначность разбора
+\end{itemize}
+% \begin{block}{}
+% \begin{minted}{haskell}
+% newtype Parser t a =
+%   Parser (StateT (ParserState t) (Either (Error t)) a)
+%     deriving ( Functor, Applicative, Monad
+%              , MonadState (ParserState t)
+%              , MonadError (Error t)
+%              )
+% \end{minted}
+% \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Парсер как монадический стек}
+\begin{block}{}
+\begin{minted}{haskell}
+newtype Parser a =
+  Parser (StateT String (Either Error a)
+
+parse :: Parser a -> String -> Either Error (a, String)
+parse (Parser p) s = runStateT p s
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Парсер на основе расширяемых эффектов}
+\begin{block}{}
+\begin{minted}{haskell}
+type Parsable r = (Member Fail r, Member (State String) r)
+
+type Parser r a = Parsable r => Eff r a
+
+parse :: Eff (Fail :> State String :> Void) a ->
+         String -> (String, Maybe a)
+parse p inp = run . runState inp . runFail $ p
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Frank: парсер как комбинация эффектов}
+\begin{block}{}
+\begin{minted}{haskell}
+parse : {[Error, State String] X} ->
+        String -> Maybe X
+parse p str = catch (state str p!)
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Frank: парсер как монолитный эффект}
+\begin{block}{Возможный интерфейс эффекта~\mintinline{haskell}{Parser}}
+\begin{minted}{haskell}
+interface Parser =
+    fail : forall Y . Y
+  | sat : {Char -> Bool} -> Char
+  | choose : forall Y . {[Parser] Y} -> {[Parser] Y} -> Y
+  | many : forall Y . {[Parser] Y} -> List Y
+\end{minted}
+\end{block}
+\end{frame}
+
+\section{Контроль эффектов для разработки реальных систем}
+
+\begin{frame}[fragile]{Архитектура ``Student's Big Brother''}
+\begin{columns}
+\begin{column}{0.1\textwidth}
+
+\end{column}
+\begin{column}{0.9\textwidth}
+\input{tex/sbb-arch-diagram.tex}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Особенности реализации \\ ``Student's Big Brother''}
+\begin{itemize}
+\item Спецификация HTTP API на уровне типов
+\item Единые типы в серверном и клиентском коде
+\item Генерация кода с использованием механизмов обобщённого программирования
+\item Управление побочными эффектами сервера с помощью преобразователей монад
+\item Применение расширяемых эффектов в реализации агента сбора данных (daemon)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Результаты}
+\begin{itemize}
+\item Разработаны~\emph{библиотеки комбинаторов парсеров} на
+      основе~\textbf{преобразователей монад} и~\textbf{расширяемых эффектов}.
+\item \textbf{Выделены отличия} преобразователей монад и расширяемых эффектов.
+\item Произведено~\textbf{сравнение производительности} разработанных библиотек с Pandoc.
+\item Разработана~\textbf{серия прототипов библиотек парсеров} для Frank и выявлены
+      \emph{ограничения выразительности}.
+\item Разработана и апробирована~\textbf{система контроля производительности студентов}
+      на лабораторных работах по программированию. В реализации использованы методы
+      контроля побочных эффектов.
+\end{itemize}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,77 @@
+\subsection{Парсер как комбинация эффектов}
+
+\begin{frame}[fragile]{Парсер как комбинация эффектов}
+
+\begin{block}{Обработка комбинации эффектов}
+\begin{minted}{haskell}
+parse : {[Error, State (List Char)] X} ->
+        (List Char) -> Maybe X
+parse p str = catch (state str p!)
+\end{minted}
+\end{block}
+
+\pause
+
+\begin{block}{Базовые парсеры}
+\begin{minted}{haskell}
+item : [Error, State (List Char)] Char
+item! = on get! { nil       -> fail
+                | (x :: xs) -> put xs; x}
+
+sat : {Char -> [Error, State (List Char)] Bool} ->
+      [Error, State (List Char)] Char
+sat p = on item! {c -> if (p c) {c} {fail}}
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Парсер как комбинация эффектов}
+\begin{block}{Парсер для заданного символа}
+\begin{minted}{haskell}
+char : Char -> [Error, State (List Char)] Char
+char c = sat {x -> eqChar x c}
+\end{minted}
+\end{block}
+
+\begin{block}{Парсер для заданной строки}
+\begin{minted}{haskell}
+string : (List Char) ->
+         [Error, State (List Char)] (List Char)
+string str = map char str
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Парсер как комбинация эффектов}
+\begin{block}{Комбинатор детерминированного выбора}
+\begin{minted}{haskell}
+choose : {[Error, State (List Char)] X} ->
+         {[Error, State (List Char)] X} ->
+          [Error, State (List Char)] X
+choose p1 p2 =
+  on (parse p1 get!) { (right _)  -> p1!
+                     | (left  _)  ->  on (parse p2 get!)
+                       { (right _)   -> p2!
+                       | (left err)  -> fail
+                       }
+                     }
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Парсер как комбинация эффектов}
+\begin{block}{Комбинаторы последовательности}
+\begin{minted}{haskell}
+many : {[Error, State (List Char)]X} ->
+        [Error, State (List Char)](List X)
+many p = choose {some p} {nil}
+
+some : {[Error, State (List Char)] X} ->
+        [Error, State (List Char)](List X)
+some p = p! :: many p
+\end{minted}
+\end{block}
+\end{frame}
+
+
+
